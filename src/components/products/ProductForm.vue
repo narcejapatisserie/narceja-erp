@@ -64,6 +64,33 @@
         <input v-model.number="form.min_stock" type="number" step="0.001" min="0" class="input" placeholder="0" />
       </div>
 
+      <!-- Imagem -->
+      <div class="md:col-span-2">
+        <label class="label">Imagem do Produto</label>
+        <div class="flex gap-3 items-start">
+          <!-- Preview -->
+          <div class="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center flex-shrink-0 overflow-hidden bg-gray-50 dark:bg-gray-800">
+            <img v-if="imagePreview" :src="imagePreview" class="w-full h-full object-cover rounded-xl" @error="imagePreview = ''" />
+            <i v-else class="pi pi-image text-gray-300 text-2xl"></i>
+          </div>
+          <div class="flex-1 space-y-2">
+            <!-- Upload de arquivo -->
+            <label class="btn-secondary text-sm cursor-pointer flex items-center gap-2 w-full justify-center">
+              <i class="pi pi-upload text-sm"></i>
+              <span>{{ uploadingImage ? 'Enviando...' : 'Escolher arquivo' }}</span>
+              <input type="file" accept="image/*" class="hidden" @change="handleImageUpload" :disabled="uploadingImage" />
+            </label>
+            <!-- Ou URL -->
+            <div class="relative">
+              <input v-model="form.image_url" type="url" class="input text-sm pr-8" placeholder="Ou cole uma URL de imagem..." @input="imagePreview = form.image_url" />
+              <button v-if="form.image_url" type="button" @click="form.image_url = ''; imagePreview = ''" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <i class="pi pi-times text-xs"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Descrição -->
       <div class="md:col-span-2">
         <label class="label">Descrição</label>
@@ -170,16 +197,18 @@ const existingCategories = computed(() => {
 interface ProductFormData {
   name: string; description: string; category: string; sku: string; barcode: string
   sale_price: number; stock_quantity: number; min_stock: number; unit: UnitMeasure
-  recipe: RecipeItem[]; is_active: boolean
+  recipe: RecipeItem[]; is_active: boolean; image_url: string
 }
 
 const defaultForm = (): ProductFormData => ({
   name: '', description: '', category: '', sku: '', barcode: '',
   sale_price: 0, stock_quantity: 0, min_stock: 0, unit: 'un',
-  recipe: [], is_active: true,
+  recipe: [], is_active: true, image_url: '',
 })
 
 const form = ref<ProductFormData>(defaultForm())
+const imagePreview = ref('')
+const uploadingImage = ref(false)
 
 watch(() => props.product, (p) => {
   if (p) {
@@ -195,11 +224,45 @@ watch(() => props.product, (p) => {
       unit: p.unit,
       recipe: p.recipe ? [...p.recipe] : [],
       is_active: p.is_active,
+      image_url: p.image_url || '',
     }
+    imagePreview.value = p.image_url || ''
   } else {
     form.value = defaultForm()
+    imagePreview.value = ''
   }
 }, { immediate: true })
+
+async function handleImageUpload(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Imagem muito grande. Máximo 5MB.')
+    return
+  }
+  uploadingImage.value = true
+  try {
+    const { supabase } = await import('@/services/supabase')
+    const ext = file.name.split('.').pop()
+    const path = `products/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('product-images').upload(path, file, { upsert: true })
+    if (error) throw error
+    const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+    form.value.image_url = data.publicUrl
+    imagePreview.value = data.publicUrl
+  } catch {
+    // fallback: usar base64 local
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const url = e.target?.result as string
+      form.value.image_url = url
+      imagePreview.value = url
+    }
+    reader.readAsDataURL(file)
+  } finally {
+    uploadingImage.value = false
+  }
+}
 
 const calculatedCost = computed(() => {
   return form.value.recipe.reduce((total, item) => {
@@ -233,6 +296,7 @@ async function handleSubmit() {
     const data = {
       ...form.value,
       recipe: form.value.recipe.filter(i => i.raw_material_id && i.quantity > 0),
+      image_url: form.value.image_url || undefined,
     }
     if (props.product) {
       await store.update(props.product.id, data)
