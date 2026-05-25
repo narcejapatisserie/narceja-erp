@@ -108,7 +108,7 @@
             <label class="label">Sabor / Nome do produto</label>
             <input v-model="newItem.productName" type="text" class="input text-sm" placeholder="Ex: Cone Trufa Belga" />
           </div>
-          <div v-if="mode === 'full'">
+          <div v-if="mode === 'full' || mode === 'flavor'">
             <label class="label">Validade</label>
             <input v-model="newItem.expirationDate" type="date" class="input text-sm" />
           </div>
