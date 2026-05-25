@@ -243,7 +243,8 @@ const generating = ref(false)
 const rows = ref<LabelRow[]>([])
 const selectedProductId = ref('')
 
-const newItem = ref<LabelRow>({ barcode: '', productName: '', expirationDate: '', copies: 1 })
+const FIXED_BARCODE = '7891234567890'
+const newItem = ref<LabelRow>({ barcode: FIXED_BARCODE, productName: '', expirationDate: '', copies: 1 })
 
 const products = computed(() => productsStore.products)
 
@@ -322,7 +323,7 @@ watch([previewCells, mode, cols, rowsPerPage], renderPreviewBarcodes, { flush: '
 function fillFromProduct() {
   const p = products.value.find(x => x.id === selectedProductId.value)
   if (!p) return
-  newItem.value.barcode = p.barcode || ''
+  newItem.value.barcode = FIXED_BARCODE
   newItem.value.productName = p.name
 }
 
@@ -330,7 +331,7 @@ function fillFromProduct() {
 function addRow() {
   if (!newItem.value.barcode) return
   rows.value.push({ ...newItem.value })
-  newItem.value = { barcode: '', productName: '', expirationDate: '', copies: 1 }
+  newItem.value = { barcode: FIXED_BARCODE, productName: '', expirationDate: '', copies: 1 }
   selectedProductId.value = ''
 }
 

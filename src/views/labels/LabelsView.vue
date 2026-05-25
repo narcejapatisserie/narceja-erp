@@ -151,11 +151,13 @@ const sizes = [
   { value: '100x50', label: '100 × 50 mm', desc: 'Extra grande' },
 ]
 
+const FIXED_BARCODE = '7891234567890'
+
 const form = ref({
   productId: '',
   size: '40x30' as LabelSize,
   storeName: 'Narceja Pâtisserie',
-  barcode: '',
+  barcode: FIXED_BARCODE,
   expirationDate: '',
   copies: 1,
 })
@@ -169,13 +171,11 @@ const previewStyle = computed(() => {
 })
 
 function onProductChange() {
-  if (selectedProduct.value) {
-    form.value.barcode = selectedProduct.value.barcode || ''
-  }
+  // barcode sempre fixo — não muda por produto
 }
 
-watch([() => form.value.barcode, () => selectedProduct.value?.barcode], async () => {
-  const bc = form.value.barcode || selectedProduct.value?.barcode
+watch([() => form.value.barcode], async () => {
+  const bc = form.value.barcode || FIXED_BARCODE
   if (!bc || !barcodeEl.value) return
   await nextTick()
   try {
@@ -189,7 +189,7 @@ async function generatePDF() {
   generatePDFLabel({
     storeName: form.value.storeName,
     productName: selectedProduct.value?.name || 'Produto',
-    barcode: form.value.barcode || selectedProduct.value?.barcode || '',
+    barcode: FIXED_BARCODE,
     expirationDate: form.value.expirationDate ? formatDate(form.value.expirationDate) : undefined,
     size: form.value.size,
     copies: form.value.copies,
@@ -203,7 +203,7 @@ function generateZPL() {
   downloadZPL({
     storeName: form.value.storeName,
     productName: selectedProduct.value?.name || 'Produto',
-    barcode: form.value.barcode || selectedProduct.value?.barcode || '',
+    barcode: FIXED_BARCODE,
     expirationDate: form.value.expirationDate ? formatDate(form.value.expirationDate) : undefined,
     size: form.value.size,
     copies: form.value.copies,
