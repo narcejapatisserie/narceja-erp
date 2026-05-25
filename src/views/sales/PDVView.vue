@@ -105,7 +105,7 @@
       </div>
 
       <!-- Grid de produtos — ocupa a tela toda menos o botão do carrinho -->
-      <div class="grid grid-cols-2 gap-3 overflow-y-auto pb-24">
+      <div class="grid grid-cols-2 gap-3 overflow-y-auto pb-40">
         <button v-for="product in filteredProducts" :key="product.id" @click="addToCart(product)"
           :disabled="product.stock_quantity <= 0"
           class="card p-3 text-left active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed border border-transparent">
@@ -119,8 +119,8 @@
         </button>
       </div>
 
-      <!-- Botão flutuante do carrinho -->
-      <div class="fixed bottom-4 left-4 right-4 z-40">
+      <!-- Botão flutuante do carrinho — fica acima da bottom nav (h-16 = 64px) -->
+      <div class="fixed bottom-20 left-4 right-4 z-40">
         <button @click="showCart = true"
           class="w-full bg-narceja-600 hover:bg-narceja-700 text-white rounded-2xl py-4 px-5 flex items-center justify-between shadow-xl active:scale-95 transition-transform">
           <div class="flex items-center gap-3">
