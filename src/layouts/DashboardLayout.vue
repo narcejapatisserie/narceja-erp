@@ -40,11 +40,11 @@
       <div class="border-t border-gray-200 dark:border-gray-700 p-3 flex-shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-narceja-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-            {{ userName?.charAt(0)?.toUpperCase() || 'U' }}
+            {{ authStore.userName?.charAt(0)?.toUpperCase() || 'U' }}
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ userName }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">{{ isAdmin ? 'Administrador' : 'Funcionário' }}</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ authStore.userName }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ authStore.isAdmin ? 'Administrador' : 'Funcionário' }}</p>
           </div>
         </div>
       </div>
@@ -68,10 +68,10 @@
 
         <div class="flex items-center gap-1 sm:gap-2">
           <button
-            @click="toggleDarkMode"
+            @click="uiStore.toggleDarkMode"
             class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
           >
-            <i :class="['pi', darkMode ? 'pi-sun' : 'pi-moon']"></i>
+            <i :class="['pi', uiStore.darkMode ? 'pi-sun' : 'pi-moon']"></i>
           </button>
           <RouterLink
             to="/pdv"
@@ -131,9 +131,6 @@ const authStore = useAuthStore()
 const uiStore = useUiStore()
 const route = useRoute()
 const router = useRouter()
-
-const { userName, isAdmin } = authStore
-const { darkMode, toggleDarkMode } = uiStore
 
 const sidebarOpen = ref(false)
 const isMobile = ref(window.innerWidth < 1024)
@@ -221,8 +218,12 @@ const currentPageTitle = computed(() => {
 })
 
 async function handleLogout() {
-  await authStore.logout()
-  router.push('/login')
+  try {
+    await authStore.logout()
+  } catch {
+    // mesmo com erro, limpa estado local e redireciona
+  }
+  router.replace('/login')
 }
 </script>
 

@@ -248,96 +248,90 @@ async function loadDashboard() {
   loadingChart.value = true
   loadError.value = ''
 
-  try {
-    // allSettled — se uma query falhar, as outras continuam
-    const [kpiRes, salesRes, productsRes, expiringRes] = await Promise.allSettled([
-      getDashboardKpis(),
-      getSales(8),
-      getProducts(),
-      getExpiringMaterials(),
-    ])
+  // Bloco 1: KPIs + dados principais (independentes)
+  const [kpiRes, salesRes, productsRes, expiringRes] = await Promise.allSettled([
+    getDashboardKpis(),
+    getSales(8),
+    getProducts(),
+    getExpiringMaterials(),
+  ])
 
-    if (kpiRes.status === 'fulfilled') kpis.value = { ...kpis.value, ...kpiRes.value }
-    else console.error('[Dashboard] KPIs:', kpiRes.reason)
+  if (kpiRes.status === 'fulfilled') kpis.value = { ...kpis.value, ...kpiRes.value }
+  else console.error('[Dashboard] KPIs:', kpiRes.reason)
 
-    if (salesRes.status === 'fulfilled')
-      recentSales.value = salesRes.value.filter(s => s.status === 'completed').slice(0, 6)
-    else console.error('[Dashboard] Vendas recentes:', salesRes.reason)
+  if (salesRes.status === 'fulfilled')
+    recentSales.value = salesRes.value.filter(s => s.status === 'completed').slice(0, 6)
+  else console.error('[Dashboard] Vendas recentes:', salesRes.reason)
 
-    if (productsRes.status === 'fulfilled')
-      lowStockProducts.value = productsRes.value.filter(p => p.stock_quantity <= p.min_stock).slice(0, 10)
-    else console.error('[Dashboard] Produtos:', productsRes.reason)
+  if (productsRes.status === 'fulfilled')
+    lowStockProducts.value = productsRes.value.filter(p => p.stock_quantity <= p.min_stock).slice(0, 10)
+  else console.error('[Dashboard] Produtos:', productsRes.reason)
 
-    if (expiringRes.status === 'fulfilled')
-      expiringMaterials.value = expiringRes.value.slice(0, 10)
-    else console.error('[Dashboard] Vencimentos:', expiringRes.reason)
+  if (expiringRes.status === 'fulfilled')
+    expiringMaterials.value = expiringRes.value.slice(0, 10)
+  else console.error('[Dashboard] Vencimentos:', expiringRes.reason)
 
-    loadingKpis.value = false
+  // KPIs já prontos — libera spinner imediatamente
+  loadingKpis.value = false
 
-    // Top produtos últimos 30 dias
-    const thirtyAgo = new Date()
-    thirtyAgo.setDate(thirtyAgo.getDate() - 30)
+  // Bloco 2: Top produtos e gráfico — em paralelo, cada um com tratamento próprio
+  const thirtyAgo = new Date()
+  thirtyAgo.setDate(thirtyAgo.getDate() - 30)
+  const sevenAgo = new Date()
+  sevenAgo.setDate(sevenAgo.getDate() - 6)
+  const startStr = sevenAgo.toISOString().split('T')[0]
+  const endStr = new Date().toISOString().split('T')[0]
 
-    const { data: topData, error: topError } = await supabase
+  const [topRes, chartRes] = await Promise.allSettled([
+    supabase
       .from('sale_items')
       .select('product_id, product_name, quantity, total_price, profit, sale:sales!inner(status, created_at)')
       .eq('sale.status', 'completed')
-      .gte('sale.created_at', thirtyAgo.toISOString())
+      .gte('sale.created_at', thirtyAgo.toISOString()),
+    getSalesByDayRange(startStr, endStr),
+  ])
 
-    if (topError) console.error('[Dashboard] Top produtos:', topError)
-
-    if (topData) {
-      const grouped: Record<string, TopProduct> = {}
-      for (const item of topData) {
-        const id = item.product_id as string
-        if (!grouped[id]) {
-          grouped[id] = { id, name: item.product_name as string, total_quantity: 0, total_revenue: 0, total_profit: 0 }
-        }
-        grouped[id].total_quantity += Number(item.quantity)
-        grouped[id].total_revenue += Number(item.total_price)
-        grouped[id].total_profit += Number(item.profit)
+  // Top produtos
+  if (topRes.status === 'fulfilled' && topRes.value.data) {
+    const grouped: Record<string, TopProduct> = {}
+    for (const item of topRes.value.data) {
+      const id = item.product_id as string
+      if (!grouped[id]) {
+        grouped[id] = { id, name: item.product_name as string, total_quantity: 0, total_revenue: 0, total_profit: 0 }
       }
-      topProducts.value = Object.values(grouped)
-        .sort((a, b) => b.total_revenue - a.total_revenue)
-        .slice(0, 6)
+      grouped[id].total_quantity += Number(item.quantity)
+      grouped[id].total_revenue += Number(item.total_price)
+      grouped[id].total_profit += Number(item.profit)
     }
-
-    // Gráfico 7 dias
-    const sevenAgo = new Date()
-    sevenAgo.setDate(sevenAgo.getDate() - 6)
-    const startStr = sevenAgo.toISOString().split('T')[0]
-    const endStr = new Date().toISOString().split('T')[0]
-
-    const daySalesData = await getSalesByDayRange(startStr, endStr).catch(e => {
-      console.error('[Dashboard] Gráfico:', e); return []
-    })
-
-    // Agrupar por dia
-    const dayMap: Record<string, number> = {}
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date()
-      d.setDate(d.getDate() - i)
-      dayMap[d.toISOString().split('T')[0]] = 0
-    }
-    for (const sale of daySalesData) {
-      const day = (sale.created_at as string).split('T')[0]
-      if (day in dayMap) dayMap[day] += Number(sale.total)
-    }
-
-    chartData.value.labels = Object.keys(dayMap).map(d => {
-      const [, m, day] = d.split('-')
-      return `${day}/${m}`
-    })
-    chartData.value.datasets[0].data = Object.values(dayMap)
-    loadingChart.value = false
-
-  } catch (err: unknown) {
-    loadingKpis.value = false
-    loadingChart.value = false
-    const e = err as { message?: string; code?: string }
-    loadError.value = e?.message || 'Erro ao carregar dados'
-    console.error('[Dashboard] Erro ao carregar:', err)
+    topProducts.value = Object.values(grouped)
+      .sort((a, b) => b.total_revenue - a.total_revenue)
+      .slice(0, 6)
+  } else if (topRes.status === 'rejected') {
+    console.error('[Dashboard] Top produtos:', topRes.reason)
   }
+
+  // Gráfico 7 dias
+  const daySalesData = chartRes.status === 'fulfilled' ? chartRes.value : []
+  if (chartRes.status === 'rejected') console.error('[Dashboard] Gráfico:', chartRes.reason)
+
+  const dayMap: Record<string, number> = {}
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    dayMap[d.toISOString().split('T')[0]] = 0
+  }
+  for (const sale of daySalesData) {
+    const day = (sale.created_at as string).split('T')[0]
+    if (day in dayMap) dayMap[day] += Number(sale.total)
+  }
+  chartData.value.labels = Object.keys(dayMap).map(d => {
+    const [, m, day] = d.split('-')
+    return `${day}/${m}`
+  })
+  chartData.value.datasets[0].data = Object.values(dayMap)
+
+  // Gráfico sempre libera, independente do resultado
+  loadingChart.value = false
 }
 
 onMounted(loadDashboard)
