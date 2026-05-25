@@ -1,0 +1,41 @@
+{
+  "name": "cones-trufados",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.6",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12",
+    "vue-tsc": "^3.3.1"
+  },
+  "dependencies": {
+    "@primevue/themes": "^4.5.4",
+    "@supabase/supabase-js": "^2.106.1",
+    "@vee-validate/zod": "^4.15.1",
+    "@vueuse/core": "^11.3.0",
+    "bwip-js": "^4.10.1",
+    "chart.js": "^4.5.1",
+    "date-fns": "^3.6.0",
+    "jsbarcode": "^3.12.3",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
+    "pinia": "^2.3.1",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.5.5",
+    "qrcode": "^1.5.4",
+    "vee-validate": "^4.15.1",
+    "vue-chartjs": "^5.3.3",
+    "vue-router": "^4.6.4",
+    "zod": "^3.25.76"
+  }
+}
