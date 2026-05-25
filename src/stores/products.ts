@@ -11,6 +11,8 @@ export const useProductsStore = defineStore('products', () => {
     loading.value = true
     try {
       products.value = await getProducts()
+    } catch (e) {
+      console.error('[products] fetchProducts:', e)
     } finally {
       loading.value = false
     }

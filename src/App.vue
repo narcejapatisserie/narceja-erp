@@ -1,24 +1,26 @@
 <template>
   <Toast position="top-right" />
   <ConfirmDialog />
-  <RouterView v-slot="{ Component, route }">
-    <component :is="getLayout(route)">
-      <Transition name="page" mode="out-in">
-        <component :is="Component" :key="route.path" />
-      </Transition>
-    </component>
-  </RouterView>
+
+  <!-- Layout de autenticação -->
+  <AuthLayout v-if="isAuthRoute">
+    <RouterView :key="$route.path" />
+  </AuthLayout>
+
+  <!-- Layout principal — mantido vivo para não recriar sidebar/header a cada navegação -->
+  <DashboardLayout v-else>
+    <RouterView :key="$route.path" />
+  </DashboardLayout>
 </template>
 
 <script setup lang="ts">
-import { type RouteLocationNormalized } from 'vue-router'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 
-function getLayout(route: RouteLocationNormalized) {
-  if (route.meta.layout === 'auth') return AuthLayout
-  return DashboardLayout
-}
+const route = useRoute()
+const isAuthRoute = computed(() => route.meta.layout === 'auth')
 </script>

@@ -216,8 +216,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
-import { onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import JsBarcode from 'jsbarcode'
 import { jsPDF } from 'jspdf'
 import { useProductsStore } from '@/stores/products'

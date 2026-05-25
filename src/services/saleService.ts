@@ -36,10 +36,11 @@ export async function createSale(params: {
   notes?: string
   soldBy?: string
 }): Promise<Sale> {
+  // Inserir com status 'open' para que o trigger AFTER UPDATE possa detectar a transição open→completed
   const { data: sale, error: saleError } = await supabase
     .from('sales')
     .insert({
-      status: 'completed',
+      status: 'open',
       customer_name: params.customerName,
       customer_phone: params.customerPhone,
       subtotal: params.subtotal,
@@ -72,9 +73,25 @@ export async function createSale(params: {
   }))
 
   const { error: itemsError } = await supabase.from('sale_items').insert(saleItems)
-  if (itemsError) throw itemsError
+  if (itemsError) {
+    // Rollback: deletar a venda órfã
+    await supabase.from('sales').delete().eq('id', sale.id)
+    throw itemsError
+  }
 
-  return sale as Sale
+  // Transição open → completed dispara o trigger que baixa estoque e gera financeiro
+  const { data: completedSale, error: updateError } = await supabase
+    .from('sales')
+    .update({ status: 'completed' })
+    .eq('id', sale.id)
+    .select()
+    .single()
+  if (updateError) {
+    await supabase.from('sales').delete().eq('id', sale.id)
+    throw updateError
+  }
+
+  return completedSale as Sale
 }
 
 export async function cancelSale(id: string) {

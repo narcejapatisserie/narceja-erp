@@ -11,6 +11,8 @@ export const useSuppliersStore = defineStore('suppliers', () => {
     loading.value = true
     try {
       suppliers.value = await getSuppliers()
+    } catch (e) {
+      console.error('[suppliers] fetchSuppliers:', e)
     } finally {
       loading.value = false
     }

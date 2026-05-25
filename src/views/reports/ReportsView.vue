@@ -135,9 +135,10 @@ function applyPreset(preset: { label: string; start: string; end: string }) {
 async function loadReport() {
   loading.value = true
   try {
-    const start = new Date(filterStart.value); start.setHours(0, 0, 0, 0)
-    const end = new Date(filterEnd.value); end.setHours(23, 59, 59, 999)
-    const sales = await getSalesByPeriod(start.toISOString(), end.toISOString())
+    const start = new Date(`${filterStart.value}T00:00:00`)
+    const end = new Date(`${filterEnd.value}T23:59:59.999`)
+    const allSales = await getSalesByPeriod(start.toISOString(), end.toISOString(), 'completed')
+    const sales = allSales
 
     const revenue = sales.reduce((s, sale) => s + sale.total, 0)
     const allItems: SaleItem[] = sales.flatMap(s => s.items || [])

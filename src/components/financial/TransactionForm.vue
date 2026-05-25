@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useFinancialStore } from '@/stores/financial'
 import { useSuppliersStore } from '@/stores/suppliers'
 import { useAuthStore } from '@/stores/auth'
@@ -94,7 +94,7 @@ const emit = defineEmits<{ saved: []; cancel: [] }>()
 const store = useFinancialStore()
 const suppliersStore = useSuppliersStore()
 const authStore = useAuthStore()
-const suppliers = ref(suppliersStore.suppliers)
+const suppliers = computed(() => suppliersStore.suppliers)
 const saving = ref(false)
 
 const today = new Date().toISOString().split('T')[0]
@@ -167,8 +167,7 @@ async function handleSubmit() {
   }
 }
 
-onMounted(async () => {
-  await suppliersStore.fetchSuppliers()
-  suppliers.value = suppliersStore.suppliers
+onMounted(() => {
+  suppliersStore.fetchSuppliers()
 })
 </script>

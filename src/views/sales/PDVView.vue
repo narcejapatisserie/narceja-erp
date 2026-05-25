@@ -65,7 +65,7 @@
               <i class="pi pi-minus text-xs"></i>
             </button>
             <span class="w-8 text-center text-sm font-medium">{{ item.quantity }}</span>
-            <button @click="cart.updateQuantity(item.product_id, item.quantity + 1)" class="w-6 h-6 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 hover:bg-narceja-100 hover:text-narceja-700 transition-colors">
+            <button @click="incrementItem(item)" class="w-6 h-6 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 hover:bg-narceja-100 hover:text-narceja-700 transition-colors">
               <i class="pi pi-plus text-xs"></i>
             </button>
           </div>
@@ -213,7 +213,22 @@ const filteredProducts = computed(() => {
   )
 })
 
+function incrementItem(item: { product_id: string; quantity: number }) {
+  const product = productsStore.products.find(p => p.id === item.product_id)
+  if (product && item.quantity >= product.stock_quantity) {
+    toast.error(`Estoque insuficiente. Disponível: ${product.stock_quantity}`)
+    return
+  }
+  cart.updateQuantity(item.product_id, item.quantity + 1)
+}
+
 function addToCart(product: Product) {
+  const existingItem = cart.items.find(i => i.product_id === product.id)
+  const currentQty = existingItem?.quantity ?? 0
+  if (currentQty >= product.stock_quantity) {
+    toast.error(`Estoque insuficiente. Disponível: ${product.stock_quantity}`)
+    return
+  }
   cart.addItem({
     product_id: product.id,
     product_name: product.name,

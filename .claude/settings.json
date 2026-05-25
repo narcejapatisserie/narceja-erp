@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"c:\\Users\\Bruno Gomes\\Desktop\\CONES_TRUFADOS\" && git add -A && git diff --cached --quiet || git commit -m \"chore: auto-deploy\" && git push"
+          }
+        ]
+      }
+    ]
+  }
+}

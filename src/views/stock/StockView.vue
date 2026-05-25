@@ -56,7 +56,7 @@
         <span class="text-sm text-gray-500">{{ filteredMovements.length }} registros</span>
       </div>
 
-      <div v-if="loading" class="flex items-center justify-center py-16">
+      <div v-if="loading && movements.length === 0" class="flex items-center justify-center py-16">
         <i class="pi pi-spin pi-spinner text-narceja-500 text-3xl"></i>
       </div>
 

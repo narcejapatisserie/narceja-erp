@@ -11,6 +11,8 @@ export const useRawMaterialsStore = defineStore('rawMaterials', () => {
     loading.value = true
     try {
       materials.value = await getRawMaterials()
+    } catch (e) {
+      console.error('[rawMaterials] fetchMaterials:', e)
     } finally {
       loading.value = false
     }

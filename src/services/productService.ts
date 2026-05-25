@@ -59,10 +59,8 @@ export async function uploadProductImage(file: File, productId: string): Promise
 
 export async function getLowStockProducts() {
   const { data, error } = await supabase
-    .from('products')
+    .from('vw_low_stock_products')
     .select('*')
-    .eq('is_active', true)
-    .filter('stock_quantity', 'lte', 'min_stock')
   if (error) throw error
   return data as Product[]
 }

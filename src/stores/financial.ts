@@ -13,6 +13,8 @@ export const useFinancialStore = defineStore('financial', () => {
     loading.value = true
     try {
       transactions.value = await getTransactions(filters)
+    } catch (e) {
+      console.error('[financial] fetchTransactions:', e)
     } finally {
       loading.value = false
     }

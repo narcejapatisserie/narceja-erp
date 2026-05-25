@@ -209,6 +209,75 @@ const TESTS: { name: string; detail: string; run: () => Promise<string> }[] = [
       return 'JOIN OK'
     }
   },
+  {
+    name: 'VIEW vw_low_stock_products',
+    detail: 'View de produtos com estoque abaixo do mínimo',
+    run: async () => {
+      const { error, count } = await supabase
+        .from('vw_low_stock_products')
+        .select('id', { count: 'exact' })
+        .limit(1)
+      if (error) throw new Error(error.message)
+      return `${count ?? 0} produto(s) com estoque baixo`
+    }
+  },
+  {
+    name: 'VIEW vw_expiring_materials',
+    detail: 'View de matérias-primas vencendo em 30 dias',
+    run: async () => {
+      const { error, count } = await supabase
+        .from('vw_expiring_materials')
+        .select('id', { count: 'exact' })
+        .limit(1)
+      if (error) throw new Error(error.message)
+      return `${count ?? 0} matéria(s)-prima(s) vencendo`
+    }
+  },
+  {
+    name: 'Trigger: open→completed dispara estoque',
+    detail: 'Cria venda de teste, confirma e verifica movimentação de estoque',
+    run: async () => {
+      // Busca um produto com estoque > 0
+      const { data: prods, error: prodErr } = await supabase
+        .from('products')
+        .select('id, name, sale_price, cost_price, stock_quantity')
+        .eq('is_active', true)
+        .gt('stock_quantity', 0)
+        .limit(1)
+      if (prodErr) throw new Error(prodErr.message)
+      if (!prods?.length) return 'Sem produtos com estoque — teste ignorado'
+
+      const prod = prods[0]
+      const stockBefore = prod.stock_quantity
+
+      // Cria venda open
+      const { data: sale, error: saleErr } = await supabase
+        .from('sales')
+        .insert({ status: 'open', subtotal: prod.sale_price, total: prod.sale_price, payment_method: 'cash', amount_paid: prod.sale_price, change_amount: 0, discount_value: 0, discount_amount: 0 })
+        .select().single()
+      if (saleErr) throw new Error(`INSERT sale: ${saleErr.message}`)
+
+      // Insere item
+      const { error: itemErr } = await supabase
+        .from('sale_items')
+        .insert({ sale_id: sale.id, product_id: prod.id, product_name: prod.name, quantity: 1, unit_price: prod.sale_price, cost_price: prod.cost_price, discount_value: 0, total_price: prod.sale_price, total_cost: prod.cost_price, profit: prod.sale_price - prod.cost_price })
+      if (itemErr) { await supabase.from('sales').delete().eq('id', sale.id); throw new Error(`INSERT item: ${itemErr.message}`) }
+
+      // Confirma → dispara trigger
+      const { error: updErr } = await supabase.from('sales').update({ status: 'completed' }).eq('id', sale.id)
+      if (updErr) { await supabase.from('sales').delete().eq('id', sale.id); throw new Error(`UPDATE completed: ${updErr.message}`) }
+
+      // Verifica se estoque reduziu
+      const { data: prodAfter } = await supabase.from('products').select('stock_quantity').eq('id', prod.id).single()
+      const stockAfter = prodAfter?.stock_quantity ?? stockBefore
+
+      // Cancela venda para reverter estoque
+      await supabase.from('sales').update({ status: 'cancelled' }).eq('id', sale.id)
+
+      if (stockAfter >= stockBefore) throw new Error(`Estoque não foi reduzido (antes: ${stockBefore}, depois: ${stockAfter}). Verifique o trigger handle_sale_completed.`)
+      return `Trigger OK — estoque ${stockBefore} → ${stockAfter} → revertido`
+    }
+  },
 ]
 
 async function runAll() {

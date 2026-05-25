@@ -44,6 +44,10 @@ supabase.from('profiles').select('count', { count: 'exact', head: true }).then((
   }
 })
 
+app.config.errorHandler = (err, instance, info) => {
+  console.error('[Vue Error]', info, err)
+}
+
 authStore.initialize().then(() => {
   app.use(router)
   app.mount('#app')

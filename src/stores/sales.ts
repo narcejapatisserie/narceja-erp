@@ -12,6 +12,8 @@ export const useSalesStore = defineStore('sales', () => {
     loading.value = true
     try {
       sales.value = await getSales()
+    } catch (e) {
+      console.error('[sales] fetchSales:', e)
     } finally {
       loading.value = false
     }
@@ -21,6 +23,8 @@ export const useSalesStore = defineStore('sales', () => {
     loading.value = true
     try {
       sales.value = await getSalesByPeriod(startDate, endDate, status)
+    } catch (e) {
+      console.error('[sales] fetchByPeriod:', e)
     } finally {
       loading.value = false
     }

@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { StockMovement } from '@/types'
+import type { StockMovement, MovementReason } from '@/types'
 
 export async function getStockMovements(entityType?: 'product' | 'raw_material', entityId?: string, limit = 100) {
   let query = supabase
@@ -19,7 +19,7 @@ export async function getStockMovements(entityType?: 'product' | 'raw_material',
 export async function addProductStockMovement(params: {
   productId: string
   movementType: 'in' | 'out' | 'adjustment'
-  reason: string
+  reason: MovementReason
   quantity: number
   currentStock: number
   unitCost?: number

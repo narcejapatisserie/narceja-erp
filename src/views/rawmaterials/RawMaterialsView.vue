@@ -37,7 +37,7 @@
 
     <!-- Tabela -->
     <div class="card overflow-hidden">
-      <div v-if="store.loading" class="flex items-center justify-center py-16">
+      <div v-if="store.loading && store.materials.length === 0" class="flex items-center justify-center py-16">
         <i class="pi pi-spin pi-spinner text-narceja-500 text-3xl"></i>
       </div>
       <div v-else-if="filteredMaterials.length === 0" class="flex flex-col items-center justify-center py-16 text-gray-400">

@@ -41,7 +41,7 @@
 
     <!-- Tabela -->
     <div class="card overflow-hidden">
-      <div v-if="store.loading" class="flex items-center justify-center py-16">
+      <div v-if="store.loading && store.sales.length === 0" class="flex items-center justify-center py-16">
         <i class="pi pi-spin pi-spinner text-narceja-500 text-3xl"></i>
       </div>
       <div v-else-if="store.sales.length === 0" class="flex flex-col items-center justify-center py-16 text-gray-400">
@@ -120,8 +120,8 @@ const periodSales = computed(() => completedSales.value.length)
 const avgTicket = computed(() => periodSales.value > 0 ? periodTotal.value / periodSales.value : 0)
 
 async function loadSales() {
-  const start = new Date(filterStart.value); start.setHours(0, 0, 0, 0)
-  const end = new Date(filterEnd.value); end.setHours(23, 59, 59, 999)
+  const start = new Date(`${filterStart.value}T00:00:00`)
+  const end = new Date(`${filterEnd.value}T23:59:59.999`)
   await store.fetchByPeriod(start.toISOString(), end.toISOString(), filterStatus.value || undefined)
 }
 
