@@ -86,7 +86,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useFinancialStore } from '@/stores/financial'
 import { useSuppliersStore } from '@/stores/suppliers'
 import { useAuthStore } from '@/stores/auth'
-import type { FinancialTransaction, PaymentMethod } from '@/types'
+import type { FinancialTransaction, PaymentMethod, TransactionType, TransactionCategory, AccountStatus } from '@/types'
 
 const props = defineProps<{ transaction?: FinancialTransaction }>()
 const emit = defineEmits<{ saved: []; cancel: [] }>()
@@ -99,20 +99,33 @@ const saving = ref(false)
 
 const today = new Date().toISOString().split('T')[0]
 
-const defaultForm = () => ({
-  type: 'expense' as const,
-  category: 'other' as const,
+interface FormData {
+  type: TransactionType
+  category: TransactionCategory
+  description: string
+  amount: number
+  due_date: string
+  payment_date: string
+  status: AccountStatus
+  payment_method: PaymentMethod | ''
+  supplier_id: string
+  notes: string
+}
+
+const defaultForm = (): FormData => ({
+  type: 'expense',
+  category: 'other',
   description: '',
   amount: 0,
   due_date: today,
   payment_date: '',
-  status: 'pending' as const,
-  payment_method: '' as PaymentMethod | '',
+  status: 'pending',
+  payment_method: '',
   supplier_id: '',
   notes: '',
 })
 
-const form = ref(defaultForm())
+const form = ref<FormData>(defaultForm())
 
 watch(() => props.transaction, (tx) => {
   if (tx) {

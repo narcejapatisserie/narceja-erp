@@ -68,7 +68,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useRawMaterialsStore } from '@/stores/rawMaterials'
 import { useSuppliersStore } from '@/stores/suppliers'
-import type { RawMaterial } from '@/types'
+import type { RawMaterial, UnitMeasure } from '@/types'
 
 const props = defineProps<{ material?: RawMaterial }>()
 const emit = defineEmits<{ saved: []; cancel: [] }>()
@@ -78,13 +78,19 @@ const suppliersStore = useSuppliersStore()
 const saving = ref(false)
 const suppliers = ref(suppliersStore.suppliers)
 
-const defaultForm = () => ({
-  name: '', description: '', unit: 'kg' as const, cost_per_unit: 0,
+interface RMFormData {
+  name: string; description: string; unit: UnitMeasure; cost_per_unit: number
+  stock_quantity: number; min_stock: number; supplier_id: string; current_batch: string
+  expiration_date: string; storage_location: string; barcode: string; is_active: boolean
+}
+
+const defaultForm = (): RMFormData => ({
+  name: '', description: '', unit: 'kg', cost_per_unit: 0,
   stock_quantity: 0, min_stock: 0, supplier_id: '', current_batch: '',
   expiration_date: '', storage_location: '', barcode: '', is_active: true,
 })
 
-const form = ref(defaultForm())
+const form = ref<RMFormData>(defaultForm())
 
 watch(() => props.material, (m) => {
   if (m) {

@@ -150,7 +150,7 @@ import { useProductsStore } from '@/stores/products'
 import { useRawMaterialsStore } from '@/stores/rawMaterials'
 import { useBarcode } from '@/composables/useBarcode'
 import { formatCurrency, formatPercent } from '@/utils/formatters'
-import type { Product, RecipeItem } from '@/types'
+import type { Product, RecipeItem, UnitMeasure } from '@/types'
 
 const props = defineProps<{ product?: Product }>()
 const emit = defineEmits<{ saved: []; cancel: [] }>()
@@ -167,21 +167,19 @@ const existingCategories = computed(() => {
   return [...new Set(cats)].sort()
 })
 
-const defaultForm = () => ({
-  name: '',
-  description: '',
-  category: '',
-  sku: '',
-  barcode: '',
-  sale_price: 0,
-  stock_quantity: 0,
-  min_stock: 0,
-  unit: 'un' as const,
-  recipe: [] as RecipeItem[],
-  is_active: true,
+interface ProductFormData {
+  name: string; description: string; category: string; sku: string; barcode: string
+  sale_price: number; stock_quantity: number; min_stock: number; unit: UnitMeasure
+  recipe: RecipeItem[]; is_active: boolean
+}
+
+const defaultForm = (): ProductFormData => ({
+  name: '', description: '', category: '', sku: '', barcode: '',
+  sale_price: 0, stock_quantity: 0, min_stock: 0, unit: 'un',
+  recipe: [], is_active: true,
 })
 
-const form = ref(defaultForm())
+const form = ref<ProductFormData>(defaultForm())
 
 watch(() => props.product, (p) => {
   if (p) {
