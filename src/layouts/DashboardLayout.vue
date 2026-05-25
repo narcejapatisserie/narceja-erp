@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
+  <div class="flex h-screen bg-narceja-50 dark:bg-gray-950 overflow-hidden">
 
     <!-- Overlay mobile (clica fora fecha) -->
     <Transition name="overlay">
@@ -13,16 +13,18 @@
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed lg:relative inset-y-0 left-0 flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 z-50 flex-shrink-0',
+        'fixed lg:relative inset-y-0 left-0 flex flex-col dark:bg-gray-900 border-r border-narceja-200 dark:border-gray-700 transition-all duration-300 z-50 flex-shrink-0',
         sidebarOpen ? 'w-64' : 'w-0 lg:w-16 overflow-hidden'
       ]"
+      style="background: #fdf9f6;"
     >
       <!-- Logo -->
-      <div class="flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <span class="text-2xl flex-shrink-0">🍦</span>
-        <span class="ml-3 font-bold text-narceja-700 dark:text-narceja-400 truncate text-sm leading-tight whitespace-nowrap">
-          Narceja<br><span class="font-normal text-gray-500 dark:text-gray-400">Pâtisserie</span>
-        </span>
+      <div class="flex items-center h-16 px-3 border-b border-narceja-200 dark:border-gray-700 flex-shrink-0 gap-2 overflow-hidden" style="background: #f5ede4;" :class="['dark:!bg-gray-900']">
+        <img src="/logo.jpg" alt="Narceja" class="w-10 h-10 rounded-lg object-contain flex-shrink-0" style="background: #f5ede4;" />
+        <div class="min-w-0">
+          <p class="font-bold truncate text-sm leading-tight" style="color: #4a1f1f;">Narceja</p>
+          <p class="text-xs truncate" style="color: #b8924a;">Pâtisserie</p>
+        </div>
       </div>
 
       <!-- Nav -->
@@ -54,7 +56,7 @@
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
 
       <!-- Header -->
-      <header class="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center px-3 sm:px-4 gap-3 flex-shrink-0">
+      <header class="h-16 border-b border-narceja-200 dark:border-gray-700 flex items-center px-3 sm:px-4 gap-3 flex-shrink-0" style="background: #fff;" :class="['dark:!bg-gray-900']">
         <button
           @click="toggleSidebar"
           class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors flex-shrink-0"
@@ -96,7 +98,7 @@
     </div>
 
     <!-- Bottom nav mobile -->
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 z-30 flex items-center justify-around px-1 safe-bottom">
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 dark:bg-gray-900 border-t border-narceja-200 dark:border-gray-700 z-30 flex items-center justify-around px-1 safe-bottom" style="background: #fdf9f6;">
       <RouterLink
         v-for="item in bottomNavItems"
         :key="item.to"

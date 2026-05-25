@@ -5,7 +5,7 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 font-sans;
+    @apply bg-narceja-50 text-gray-900 font-sans;
     font-feature-settings: "cv11", "ss01";
   }
   .dark body {
@@ -15,7 +15,11 @@
 
 @layer components {
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700;
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-narceja-200 dark:border-gray-700;
+  }
+
+  .badge-secondary {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-narceja-100 text-narceja-800 dark:bg-narceja-900/30 dark:text-narceja-300;
   }
 
   .btn-primary {
@@ -64,11 +68,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d4781a33;
+  background: #b8924a44;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #d4781a66;
+  background: #b8924a88;
 }
 
 /* Transições de página */

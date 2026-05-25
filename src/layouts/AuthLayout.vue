@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-narceja-950 via-narceja-800 to-narceja-600 flex items-center justify-center p-4">
+  <div class="min-h-screen flex items-center justify-center p-4" style="background: linear-gradient(135deg, #4a1f1f 0%, #7a5c28 40%, #b8924a 100%);">
     <div class="w-full max-w-md">
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-2xl mb-4">
-          <span class="text-3xl">🍦</span>
+      <!-- Logo -->
+      <div class="text-center mb-6">
+        <div class="inline-block rounded-2xl overflow-hidden shadow-2xl mb-4" style="background: #f5ede4;">
+          <img src="/logo.jpg" alt="Narceja Pâtisserie" class="w-40 h-40 object-contain" />
         </div>
-        <h1 class="text-2xl font-bold text-white">Narceja Pâtisserie</h1>
-        <p class="text-narceja-200 text-sm mt-1">Sistema de Gestão</p>
+        <p class="text-narceja-200 text-sm font-medium tracking-widest uppercase opacity-80">Sistema de Gestão</p>
       </div>
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
         <slot />
