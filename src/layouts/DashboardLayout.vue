@@ -20,14 +20,10 @@
     >
       <!-- Logo -->
       <div
-        class="flex items-center h-16 px-3 border-b border-narceja-200 dark:border-gray-700 flex-shrink-0 gap-2 overflow-hidden"
+        class="flex items-center justify-center h-16 px-2 border-b border-narceja-200 dark:border-gray-700 flex-shrink-0 overflow-hidden"
         :class="uiStore.darkMode ? 'bg-gray-900' : 'bg-[#f5ede4]'"
       >
-        <img src="/logo.jpg" alt="Narceja" class="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-[#f5ede4]" />
-        <div class="min-w-0">
-          <p class="font-bold truncate text-sm leading-tight" :class="uiStore.darkMode ? 'text-narceja-300' : 'text-narceja-900'">Narceja</p>
-          <p class="text-xs truncate text-narceja-500">Pâtisserie</p>
-        </div>
+        <img src="/logo.jpg" alt="Narceja Pâtisserie" class="h-14 w-auto object-contain rounded-lg" style="background: #f5ede4;" />
       </div>
 
       <!-- Nav -->
