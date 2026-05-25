@@ -45,6 +45,7 @@
         <option value="pending">Pendentes</option>
         <option value="paid">Pagos</option>
         <option value="overdue">Vencidos</option>
+        <option value="cancelled">Cancelados</option>
       </select>
       <input v-model="filterStart" type="date" class="input w-40" />
       <input v-model="filterEnd" type="date" class="input w-40" />
@@ -86,7 +87,11 @@
               {{ tx.type === 'income' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
             </td>
             <td class="px-4 py-3 text-center">
-              <span :class="['badge', tx.status === 'paid' ? 'badge-success' : tx.status === 'overdue' ? 'badge-danger' : 'badge-warning']">
+              <span :class="['badge',
+                tx.status === 'paid' ? 'badge-success' :
+                tx.status === 'overdue' ? 'badge-danger' :
+                tx.status === 'cancelled' ? 'badge-secondary' :
+                'badge-warning']">
                 {{ STATUS_LABELS[tx.status] }}
               </span>
             </td>
@@ -144,10 +149,14 @@ const showForm = ref(false)
 const editingTx = ref<FinancialTransaction | undefined>()
 
 const totalIncome = computed(() =>
-  store.transactions.filter(t => t.type === 'income' && t.status === 'paid').reduce((s, t) => s + t.amount, 0)
+  store.transactions
+    .filter(t => t.type === 'income' && (t.status === 'paid' || t.status === 'pending'))
+    .reduce((s, t) => s + t.amount, 0)
 )
 const totalExpense = computed(() =>
-  store.transactions.filter(t => t.type === 'expense' && t.status === 'paid').reduce((s, t) => s + t.amount, 0)
+  store.transactions
+    .filter(t => t.type === 'expense' && (t.status === 'paid' || t.status === 'pending'))
+    .reduce((s, t) => s + t.amount, 0)
 )
 const balance = computed(() => totalIncome.value - totalExpense.value)
 const pendingExpenses = computed(() =>
