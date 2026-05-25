@@ -1,14 +1,14 @@
 <template>
-  <div class="card p-5">
-    <div class="flex items-start justify-between">
+  <div class="card p-3 sm:p-5">
+    <div class="flex items-start justify-between gap-2">
       <div class="flex-1 min-w-0">
-        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 truncate">{{ title }}</p>
-        <div v-if="loading" class="h-7 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-2"></div>
-        <p v-else class="text-xl font-bold mt-1 truncate" :class="valueColor">{{ value }}</p>
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 leading-tight">{{ title }}</p>
+        <div v-if="loading" class="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1"></div>
+        <p v-else class="text-base sm:text-xl font-bold mt-1 leading-tight" :class="valueColor">{{ value }}</p>
         <p v-if="subtitle" class="text-xs text-gray-400 mt-0.5">{{ subtitle }}</p>
       </div>
-      <div :class="['w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ml-3', iconBg]">
-        <i :class="['pi', icon, 'text-lg', iconColor]"></i>
+      <div :class="['w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0', iconBg]">
+        <i :class="['pi', icon, 'text-sm sm:text-lg', iconColor]"></i>
       </div>
     </div>
   </div>
