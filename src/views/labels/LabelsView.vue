@@ -52,6 +52,38 @@
         </div>
 
         <div>
+          <label class="label">Modelo de Etiqueta</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              @click="form.template = 'standard'"
+              :class="[
+                'p-3 rounded-lg border text-sm font-medium text-center transition-all',
+                form.template === 'standard'
+                  ? 'bg-narceja-500 border-narceja-500 text-white'
+                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-narceja-300'
+              ]"
+            >
+              <div class="font-bold">Padrão</div>
+              <div class="text-xs opacity-75">Nome do produto</div>
+            </button>
+            <button
+              type="button"
+              @click="form.template = 'flavor'"
+              :class="[
+                'p-3 rounded-lg border text-sm font-medium text-center transition-all',
+                form.template === 'flavor'
+                  ? 'bg-narceja-500 border-narceja-500 text-white'
+                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-narceja-300'
+              ]"
+            >
+              <div class="font-bold">Com Sabor</div>
+              <div class="text-xs opacity-75">Linha p/ caneta</div>
+            </button>
+          </div>
+        </div>
+
+        <div>
           <label class="label">Quantidade de cópias</label>
           <input v-model.number="form.copies" type="number" min="1" max="100" class="input" />
         </div>
@@ -75,7 +107,10 @@
       <!-- Preview -->
       <div class="card p-5 flex flex-col items-center justify-center">
         <h3 class="font-semibold text-gray-900 dark:text-white mb-4 self-start">Preview</h3>
+
+        <!-- Preview Padrão -->
         <div
+          v-if="form.template === 'standard'"
           class="bg-white border-2 border-dashed border-gray-300 flex flex-col items-center justify-center p-4 text-center"
           :style="previewStyle"
         >
@@ -90,6 +125,23 @@
             Val: {{ formatDate(form.expirationDate) }}
           </p>
         </div>
+
+        <!-- Preview Com Sabor -->
+        <div
+          v-else
+          class="bg-white flex flex-col items-center p-2 text-center overflow-hidden"
+          :style="{ ...previewStyle, border: '1.5px solid #b8924a' }"
+        >
+          <img src="/logo.jpg" class="object-contain mb-1" style="height: 28px; width: 28px;" />
+          <div class="w-full" style="border-top: 1px solid #b8924a; margin-bottom: 4px;"></div>
+          <p style="font-size: 7px; font-weight: bold; color: #4a2c17; text-align: left; width: 100%; padding: 0 4px;">Sabor:</p>
+          <div style="border-bottom: 1px solid #666; width: calc(100% - 8px); margin: 3px 4px;"></div>
+          <div style="border-bottom: 1px solid #666; width: calc(100% - 8px); margin: 3px 4px;" v-if="previewIsTall"></div>
+          <div class="w-full" style="border-top: 1px solid #b8924a; margin-top: 4px;"></div>
+          <p v-if="form.expirationDate" style="font-size: 6px; color: #555; margin-top: 2px;">Val: {{ formatDate(form.expirationDate) }}</p>
+          <svg ref="barcodeEl" class="w-full" style="max-height: 18px;"></svg>
+        </div>
+
         <p class="text-xs text-gray-400 mt-3">Preview ilustrativo (escala não real)</p>
       </div>
     </div>
@@ -160,6 +212,7 @@ const form = ref({
   barcode: FIXED_BARCODE,
   expirationDate: '',
   copies: 1,
+  template: 'standard' as 'standard' | 'flavor',
 })
 
 const selectedProduct = computed(() => products.value.find(p => p.id === form.value.productId))
@@ -168,6 +221,11 @@ const previewStyle = computed(() => {
   const [w, h] = form.value.size.split('x').map(Number)
   const scale = 4
   return { width: `${w * scale}px`, height: `${h * scale}px` }
+})
+
+const previewIsTall = computed(() => {
+  const h = parseInt(form.value.size.split('x')[1])
+  return h >= 40
 })
 
 function onProductChange() {
@@ -186,13 +244,14 @@ watch([() => form.value.barcode], async () => {
 })
 
 async function generatePDF() {
-  generatePDFLabel({
+  await generatePDFLabel({
     storeName: form.value.storeName,
     productName: selectedProduct.value?.name || 'Produto',
     barcode: FIXED_BARCODE,
     expirationDate: form.value.expirationDate ? formatDate(form.value.expirationDate) : undefined,
     size: form.value.size,
     copies: form.value.copies,
+    template: form.value.template,
   })
   if (selectedProduct.value) {
     await saveLabel()
@@ -207,6 +266,7 @@ function generateZPL() {
     expirationDate: form.value.expirationDate ? formatDate(form.value.expirationDate) : undefined,
     size: form.value.size,
     copies: form.value.copies,
+    template: form.value.template,
   })
 }
 
