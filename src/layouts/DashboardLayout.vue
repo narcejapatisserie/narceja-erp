@@ -217,12 +217,8 @@ const currentPageTitle = computed(() => {
   return 'Narceja ERP'
 })
 
-async function handleLogout() {
-  try {
-    await authStore.logout()
-  } catch {
-    // mesmo com erro, limpa estado local e redireciona
-  }
+function handleLogout() {
+  authStore.logout()  // zera profile.value sincronamente, signOut vai em background
   router.replace('/login')
 }
 </script>

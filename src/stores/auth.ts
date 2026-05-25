@@ -39,8 +39,12 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
-    await signOut()
-    profile.value = null
+    profile.value = null  // zera imediatamente, antes do signOut
+    try {
+      await signOut()
+    } catch {
+      // ignora erro de rede — sessão local já foi limpa
+    }
   }
 
   return { profile, loading, isAuthenticated, isAdmin, userName, initialize, login, logout }
