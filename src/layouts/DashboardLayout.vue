@@ -13,17 +13,20 @@
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed lg:relative inset-y-0 left-0 flex flex-col dark:bg-gray-900 border-r border-narceja-200 dark:border-gray-700 transition-all duration-300 z-50 flex-shrink-0',
-        sidebarOpen ? 'w-64' : 'w-0 lg:w-16 overflow-hidden'
+        'fixed lg:relative inset-y-0 left-0 flex flex-col border-r border-narceja-200 dark:border-gray-700 transition-all duration-300 z-50 flex-shrink-0',
+        sidebarOpen ? 'w-64' : 'w-0 lg:w-16 overflow-hidden',
+        uiStore.darkMode ? 'bg-gray-900' : 'bg-[#fdf9f6]'
       ]"
-      style="background: #fdf9f6;"
     >
       <!-- Logo -->
-      <div class="flex items-center h-16 px-3 border-b border-narceja-200 dark:border-gray-700 flex-shrink-0 gap-2 overflow-hidden" style="background: #f5ede4;" :class="['dark:!bg-gray-900']">
-        <img src="/logo.jpg" alt="Narceja" class="w-10 h-10 rounded-lg object-contain flex-shrink-0" style="background: #f5ede4;" />
+      <div
+        class="flex items-center h-16 px-3 border-b border-narceja-200 dark:border-gray-700 flex-shrink-0 gap-2 overflow-hidden"
+        :class="uiStore.darkMode ? 'bg-gray-900' : 'bg-[#f5ede4]'"
+      >
+        <img src="/logo.jpg" alt="Narceja" class="w-10 h-10 rounded-lg object-contain flex-shrink-0 bg-[#f5ede4]" />
         <div class="min-w-0">
-          <p class="font-bold truncate text-sm leading-tight" style="color: #4a1f1f;">Narceja</p>
-          <p class="text-xs truncate" style="color: #b8924a;">Pâtisserie</p>
+          <p class="font-bold truncate text-sm leading-tight" :class="uiStore.darkMode ? 'text-narceja-300' : 'text-narceja-900'">Narceja</p>
+          <p class="text-xs truncate text-narceja-500">Pâtisserie</p>
         </div>
       </div>
 
@@ -56,7 +59,7 @@
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
 
       <!-- Header -->
-      <header class="h-16 border-b border-narceja-200 dark:border-gray-700 flex items-center px-3 sm:px-4 gap-3 flex-shrink-0" style="background: #fff;" :class="['dark:!bg-gray-900']">
+      <header class="h-16 border-b border-narceja-200 dark:border-gray-700 flex items-center px-3 sm:px-4 gap-3 flex-shrink-0 bg-white dark:bg-gray-900">
         <button
           @click="toggleSidebar"
           class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors flex-shrink-0"
@@ -98,7 +101,7 @@
     </div>
 
     <!-- Bottom nav mobile -->
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 dark:bg-gray-900 border-t border-narceja-200 dark:border-gray-700 z-30 flex items-center justify-around px-1 safe-bottom" style="background: #fdf9f6;">
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 border-t border-narceja-200 dark:border-gray-700 z-30 flex items-center justify-around px-1 safe-bottom bg-white dark:bg-gray-900">
       <RouterLink
         v-for="item in bottomNavItems"
         :key="item.to"
