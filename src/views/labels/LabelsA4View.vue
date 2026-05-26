@@ -15,31 +15,40 @@
       <!-- Configurações -->
       <div class="xl:col-span-1 space-y-4">
 
-        <!-- Modo -->
+        <!-- Elementos da etiqueta -->
         <div class="card p-4 space-y-3">
-          <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Modo de Etiqueta</h3>
-          <div class="grid grid-cols-3 gap-2">
-            <button
-              @click="mode = 'barcode-only'"
-              :class="['p-3 rounded-lg border text-xs font-medium text-center transition-all', mode === 'barcode-only' ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
-            >
-              <i class="pi pi-barcode block text-lg mb-1"></i>
-              Só código
-            </button>
-            <button
-              @click="mode = 'full'"
-              :class="['p-3 rounded-lg border text-xs font-medium text-center transition-all', mode === 'full' ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
-            >
-              <i class="pi pi-tag block text-lg mb-1"></i>
-              Completa
-            </button>
-            <button
-              @click="mode = 'flavor'"
-              :class="['p-3 rounded-lg border text-xs font-medium text-center transition-all', mode === 'flavor' ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
-            >
-              <i class="pi pi-pencil block text-lg mb-1"></i>
-              Com Sabor
-            </button>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Elementos da Etiqueta</h3>
+          <div class="space-y-2">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" v-model="showLogo" class="w-4 h-4 accent-narceja-500" />
+              <span class="text-sm text-gray-700 dark:text-gray-300">Logo</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" v-model="showStoreName" class="w-4 h-4 accent-narceja-500" />
+              <span class="text-sm text-gray-700 dark:text-gray-300">Nome da loja</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" v-model="showProductName" class="w-4 h-4 accent-narceja-500" />
+              <span class="text-sm text-gray-700 dark:text-gray-300">Nome do produto</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" v-model="showFlavorLine" class="w-4 h-4 accent-narceja-500" />
+              <span class="text-sm text-gray-700 dark:text-gray-300">Linha "Sabor: ___" (manuscrito)</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" v-model="showBarcode" class="w-4 h-4 accent-narceja-500" />
+              <span class="text-sm text-gray-700 dark:text-gray-300">Código de barras</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" v-model="showExpiration" class="w-4 h-4 accent-narceja-500" />
+              <span class="text-sm text-gray-700 dark:text-gray-300">Validade</span>
+            </label>
+          </div>
+
+          <!-- Nome da loja (quando ativado) -->
+          <div v-if="showStoreName">
+            <label class="label">Nome da loja</label>
+            <input v-model="storeName" type="text" class="input text-sm" placeholder="Narceja Pâtisserie" />
           </div>
         </div>
 
@@ -97,18 +106,6 @@
           </p>
         </div>
 
-        <!-- Loja (só no modo full) -->
-        <div v-if="mode === 'full'" class="card p-4 space-y-3">
-          <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Dados da Loja</h3>
-          <div>
-            <label class="label">Nome da loja</label>
-            <input v-model="storeName" type="text" class="input text-sm" placeholder="Narceja Pâtisserie" />
-          </div>
-          <div>
-            <label class="label">Logo (URL ou deixe em branco)</label>
-            <input v-model="logoUrl" type="text" class="input text-sm" placeholder="https://..." />
-          </div>
-        </div>
 
         <!-- Adicionar item -->
         <div class="card p-4 space-y-3">
@@ -129,11 +126,11 @@
             <label class="label">Código de barras *</label>
             <input v-model="newItem.barcode" type="text" class="input text-sm" placeholder="Ex: 7891234567890" />
           </div>
-          <div v-if="mode === 'full'">
-            <label class="label">Sabor / Nome do produto</label>
+          <div v-if="showProductName">
+            <label class="label">Nome do produto</label>
             <input v-model="newItem.productName" type="text" class="input text-sm" placeholder="Ex: Cone Trufa Belga" />
           </div>
-          <div v-if="mode === 'full' || mode === 'flavor'">
+          <div v-if="showExpiration">
             <label class="label">Validade</label>
             <input v-model="newItem.expirationDate" type="date" class="input text-sm" />
           </div>
@@ -220,31 +217,25 @@
                 class="border border-gray-200 flex flex-col items-center justify-center p-1 overflow-hidden"
               >
                 <template v-if="cell">
-                  <!-- Modo full -->
-                  <template v-if="mode === 'full'">
-                    <p class="text-center font-bold leading-tight overflow-hidden" :style="previewStoreStyle">{{ storeName }}</p>
-                    <p class="text-center font-semibold leading-tight overflow-hidden mt-0.5" :style="previewNameStyle">{{ cell.productName }}</p>
-                    <div class="w-full mt-0.5" :style="previewBarcodeWrapStyle">
+                  <div class="w-full h-full flex flex-col items-center justify-start overflow-hidden p-0.5" style="position:relative">
+                    <!-- Logo (canto direito) -->
+                    <img v-if="showLogo" src="/logo.jpg" class="absolute top-0.5 right-0.5 object-contain" :style="{ width: `${Math.min(cellH * 0.28, 14)}px`, height: `${Math.min(cellH * 0.28, 14)}px` }" />
+                    <!-- Nome da loja -->
+                    <p v-if="showStoreName" class="font-bold leading-tight overflow-hidden w-full" :style="{ ...previewStoreStyle, paddingRight: showLogo ? `${Math.min(cellH * 0.28, 14) + 2}px` : '0' }">{{ storeName }}</p>
+                    <!-- Nome do produto -->
+                    <p v-if="showProductName && cell.productName" class="font-semibold leading-tight overflow-hidden text-center w-full mt-0.5" :style="previewNameStyle">{{ cell.productName }}</p>
+                    <!-- Linha sabor -->
+                    <template v-if="showFlavorLine">
+                      <p class="font-bold overflow-hidden w-full mt-0.5" :style="{ ...previewValStyle, paddingLeft: '2px' }">Sabor:</p>
+                      <div class="w-full" style="border-bottom: 0.5px solid #666; margin: 1px 0;"></div>
+                    </template>
+                    <!-- Barcode -->
+                    <div v-if="showBarcode" class="w-full mt-0.5" :style="previewBarcodeWrapStyle">
                       <svg :ref="el => setBarcodeRef(el as SVGSVGElement | null, i)" class="w-full h-auto"></svg>
                     </div>
-                    <p v-if="cell.expirationDate" class="text-gray-500 mt-0.5 overflow-hidden" :style="previewValStyle">Val: {{ formatDate(cell.expirationDate) }}</p>
-                  </template>
-                  <!-- Modo flavor -->
-                  <template v-else-if="mode === 'flavor'">
-                    <p class="text-center font-bold leading-tight overflow-hidden" :style="previewStoreStyle">{{ storeName }}</p>
-                    <p class="font-bold overflow-hidden" :style="{ ...previewValStyle, alignSelf: 'flex-start', paddingLeft: '2px' }">Sabor:</p>
-                    <div class="w-full" style="border-bottom: 0.5px solid #666; margin: 1px 0;"></div>
-                    <div class="w-full mt-0.5" :style="previewBarcodeWrapStyle">
-                      <svg :ref="el => setBarcodeRef(el as SVGSVGElement | null, i)" class="w-full h-auto"></svg>
-                    </div>
-                    <p v-if="cell.expirationDate" class="text-gray-500 overflow-hidden" :style="previewValStyle">Val: {{ formatDate(cell.expirationDate) }}</p>
-                  </template>
-                  <!-- Modo barcode only -->
-                  <template v-else>
-                    <div class="w-full" :style="previewBarcodeWrapStyle">
-                      <svg :ref="el => setBarcodeRef(el as SVGSVGElement | null, i)" class="w-full h-auto"></svg>
-                    </div>
-                  </template>
+                    <!-- Validade -->
+                    <p v-if="showExpiration && cell.expirationDate" class="text-gray-500 overflow-hidden mt-0.5" :style="previewValStyle">Val: {{ formatDate(cell.expirationDate) }}</p>
+                  </div>
                 </template>
               </div>
             </div>
@@ -275,12 +266,19 @@ interface LabelRow {
 const productsStore = useProductsStore()
 const toast = useToast()
 
-const mode = ref<'barcode-only' | 'full' | 'flavor'>('full')
+const mode = ref<'barcode-only' | 'full' | 'flavor'>('full') // mantido para compatibilidade interna
 const cols = ref(3)
 const rowsPerPage = ref(8)
 const storeName = ref('Narceja Pâtisserie')
-const logoUrl = ref('')
 const generating = ref(false)
+
+// Checkboxes de elementos
+const showLogo = ref(true)
+const showStoreName = ref(true)
+const showProductName = ref(true)
+const showFlavorLine = ref(false)
+const showBarcode = ref(true)
+const showExpiration = ref(true)
 
 const rows = ref<LabelRow[]>([])
 const selectedProductId = ref('')
@@ -350,7 +348,7 @@ function renderPreviewBarcodes() {
           format: 'CODE128',
           width: 1,
           height: 20,
-          displayValue: mode.value === 'barcode-only',
+          displayValue: true,
           fontSize: 7,
           margin: 1,
         })
@@ -359,7 +357,7 @@ function renderPreviewBarcodes() {
   })
 }
 
-watch([previewCells, mode, cols, rowsPerPage], renderPreviewBarcodes, { flush: 'post' })
+watch([previewCells, cols, rowsPerPage, showBarcode], renderPreviewBarcodes, { flush: 'post' })
 
 // ─── Preencher a partir do produto selecionado
 function fillFromProduct() {
@@ -409,7 +407,7 @@ async function generatePDF() {
   try {
     await nextTick()
 
-    const logoBase64 = (mode.value === 'full' || mode.value === 'flavor') ? await loadLogo() : null
+    const logoBase64 = showLogo.value ? await loadLogo() : null
 
     // Dimensões em mm
     const PAGE_W = 210
@@ -448,94 +446,30 @@ async function generatePDF() {
       doc.setLineWidth(0.2)
       doc.rect(x, y, cellW, cellH_mm)
 
-      if (mode.value === 'barcode-only') {
-        // Apenas código de barras
-        try {
-          const canvas = document.createElement('canvas')
-          JsBarcode(canvas, cell.barcode, {
-            format: 'CODE128', width: 2, height: 60,
-            displayValue: true, fontSize: 10, margin: 4, background: '#ffffff',
-          })
-          const img = canvas.toDataURL('image/png')
-          const bcH = cellH_mm * 0.85
-          doc.addImage(img, 'PNG', x + 1, y + (cellH_mm - bcH) / 2, cellW - 2, bcH)
-        } catch { /* ignora */ }
-
-      } else if (mode.value === 'flavor') {
-        // Etiqueta com linha de sabor para escrita manual
+      {
+        // Renderização baseada em checkboxes
         const logoSize = Math.min(cellH_mm * 0.28, cellW * 0.22, 7)
-        let curY = y + 2.5
+        let curY = y + 1.5
 
-        if (logoBase64) {
-          doc.addImage(logoBase64, 'JPEG', x + cellW - logoSize - 1, y + 1, logoSize, logoSize)
-          // Nome da loja à esquerda da logo
+        // Logo (canto superior direito)
+        if (showLogo.value && logoBase64) {
+          doc.addImage(logoBase64, 'JPEG', x + cellW - logoSize - 0.8, y + 0.8, logoSize, logoSize)
+        }
+
+        // Nome da loja
+        if (showStoreName.value) {
           doc.setFontSize(5.5)
           doc.setFont('helvetica', 'bold')
           doc.setTextColor(120, 60, 10)
-          doc.text(storeName.value, x + 2, curY, { maxWidth: cellW - logoSize - 4 })
-        } else {
-          doc.setFontSize(5.5)
-          doc.setFont('helvetica', 'bold')
-          doc.setTextColor(120, 60, 10)
-          doc.text(storeName.value, x + cellW / 2, curY, { align: 'center', maxWidth: cellW - 2 })
+          const storeMaxW = (showLogo.value && logoBase64) ? cellW - logoSize - 3 : cellW - 2
+          doc.text(storeName.value, x + 1.5, curY + 1.5, { maxWidth: storeMaxW })
+          curY += Math.max((showLogo.value && logoBase64) ? logoSize + 0.5 : 0, 3.5)
+        } else if (showLogo.value && logoBase64) {
+          curY += logoSize + 0.5
         }
-        curY += Math.max(logoSize + 0.5, 3.5)
-
-        // "Sabor:" + linha
-        doc.setFontSize(6)
-        doc.setFont('helvetica', 'bold')
-        doc.setTextColor(20, 20, 20)
-        doc.text('Sabor:', x + 2, curY)
-        curY += 4
-        doc.setDrawColor(80, 80, 80)
-        doc.setLineWidth(0.3)
-        doc.line(x + 2, curY, x + cellW - 2, curY)
-        curY += 2
-
-        // Código de barras
-        if (cell.barcode) {
-          try {
-            const canvas = document.createElement('canvas')
-            JsBarcode(canvas, cell.barcode, {
-              format: 'CODE128', width: 2, height: 50,
-              displayValue: true, fontSize: 9, margin: 2, background: '#ffffff',
-            })
-            const img = canvas.toDataURL('image/png')
-            const bcH = Math.min(cellH_mm * 0.42, y + cellH_mm - curY - 4)
-            doc.addImage(img, 'PNG', x + 2, curY, cellW - 4, bcH)
-            curY += bcH + 1
-          } catch { /* ignora */ }
-        }
-
-        // Validade
-        if (cell.expirationDate) {
-          doc.setFontSize(5)
-          doc.setFont('helvetica', 'normal')
-          doc.setTextColor(80, 80, 80)
-          doc.text(`Val: ${formatDate(cell.expirationDate)}`, x + cellW / 2, y + cellH_mm - 1.5, { align: 'center' })
-        }
-
-      } else {
-        // Etiqueta completa
-        const logoSize = Math.min(cellH_mm * 0.28, cellW * 0.22, 7)
-        let curY = y + 2.5
-
-        if (logoBase64) {
-          doc.addImage(logoBase64, 'JPEG', x + cellW - logoSize - 1, y + 1, logoSize, logoSize)
-          doc.setFontSize(5.5)
-          doc.setFont('helvetica', 'bold')
-          doc.setTextColor(120, 60, 10)
-          doc.text(storeName.value, x + 2, curY, { maxWidth: cellW - logoSize - 4 })
-        } else {
-          doc.setFontSize(5.5)
-          doc.setFont('helvetica', 'bold')
-          doc.setTextColor(120, 60, 10)
-          doc.text(storeName.value, x + cellW / 2, curY, { align: 'center', maxWidth: cellW - 2 })
-        }
-        curY += Math.max(logoSize + 0.5, 3)
 
         // Nome do produto
-        if (cell.productName) {
+        if (showProductName.value && cell.productName) {
           doc.setFontSize(6.5)
           doc.setFont('helvetica', 'bold')
           doc.setTextColor(20, 20, 20)
@@ -544,8 +478,21 @@ async function generatePDF() {
           curY += nameLines.length * 3.2
         }
 
+        // Linha "Sabor:"
+        if (showFlavorLine.value) {
+          doc.setFontSize(6)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(20, 20, 20)
+          doc.text('Sabor:', x + 2, curY)
+          curY += 4
+          doc.setDrawColor(80, 80, 80)
+          doc.setLineWidth(0.3)
+          doc.line(x + 2, curY, x + cellW - 2, curY)
+          curY += 2
+        }
+
         // Código de barras
-        if (cell.barcode) {
+        if (showBarcode.value && cell.barcode) {
           try {
             const canvas = document.createElement('canvas')
             JsBarcode(canvas, cell.barcode, {
@@ -553,14 +500,17 @@ async function generatePDF() {
               displayValue: true, fontSize: 9, margin: 2, background: '#ffffff',
             })
             const img = canvas.toDataURL('image/png')
-            const bcH = Math.min(cellH_mm * 0.45, cellH_mm - curY + y - 4)
-            doc.addImage(img, 'PNG', x + 2, curY, cellW - 4, bcH)
-            curY += bcH + 1
+            const maxBcH = y + cellH_mm - curY - (showExpiration.value && cell.expirationDate ? 4 : 1.5)
+            const bcH = Math.min(cellH_mm * 0.45, maxBcH)
+            if (bcH > 3) {
+              doc.addImage(img, 'PNG', x + 2, curY, cellW - 4, bcH)
+              curY += bcH + 1
+            }
           } catch { /* ignora */ }
         }
 
         // Validade
-        if (cell.expirationDate) {
+        if (showExpiration.value && cell.expirationDate) {
           doc.setFontSize(5)
           doc.setFont('helvetica', 'normal')
           doc.setTextColor(80, 80, 80)
