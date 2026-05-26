@@ -492,7 +492,7 @@ async function generatePDF() {
           curY += 1.5            // pouco espaço após linha → barcode sobe
         }
 
-        // 5. Código de barras — centralizado
+        // 5. Código de barras — centralizado, nunca ultrapassa a validade
         if (showBarcode.value && cell.barcode) {
           try {
             const canvas = document.createElement('canvas')
@@ -501,17 +501,18 @@ async function generatePDF() {
               displayValue: true, fontSize: 8, margin: 2, background: '#ffffff',
             })
             const img = canvas.toDataURL('image/png')
-            const bottomReserve = (showExpiration.value && cell.expirationDate) ? 5 : PAD
-            const available = y + cellH_mm - curY - bottomReserve
-            // Usa o espaço disponível, com mínimo de 8mm e máximo de 45% da célula
-            const bcH = Math.max(8, Math.min(cellH_mm * 0.45, available))
-            const bcW = cellW - PAD * 2
-            doc.addImage(img, 'PNG', x + PAD, curY, bcW, bcH)
-            curY += bcH + 1
+            // Reserva sempre espaço para validade no fundo
+            const valReserve = showExpiration.value ? 5 : PAD
+            const available = (y + cellH_mm - valReserve) - curY
+            if (available > 2) {
+              const bcH = Math.min(cellH_mm * 0.45, available)
+              doc.addImage(img, 'PNG', x + PAD, curY, cellW - PAD * 2, bcH)
+              curY += bcH
+            }
           } catch { /* ignora */ }
         }
 
-        // 6. Validade — centralizada, sempre no fundo
+        // 6. Validade — sempre no fundo, nunca sobreposta
         if (showExpiration.value && cell.expirationDate) {
           doc.setFontSize(5)
           doc.setFont('helvetica', 'normal')
