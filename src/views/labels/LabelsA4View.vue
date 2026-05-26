@@ -497,17 +497,16 @@ async function generatePDF() {
           try {
             const canvas = document.createElement('canvas')
             JsBarcode(canvas, cell.barcode, {
-              format: 'CODE128', width: 1.5, height: 40,
-              displayValue: true, fontSize: 8, margin: 2, background: '#ffffff',
+              format: 'CODE128', width: 2, height: 80,
+              displayValue: true, fontSize: 10, margin: 2, background: '#ffffff',
             })
             const img = canvas.toDataURL('image/png')
             // Reserva sempre espaço para validade no fundo
             const valReserve = showExpiration.value ? 5 : PAD
             const available = (y + cellH_mm - valReserve) - curY
             if (available > 2) {
-              const bcH = Math.min(cellH_mm * 0.58, available)
-              doc.addImage(img, 'PNG', x + PAD, curY, cellW - PAD * 2, bcH)
-              curY += bcH
+              doc.addImage(img, 'PNG', x + PAD, curY, cellW - PAD * 2, available)
+              curY += available
             }
           } catch { /* ignora */ }
         }
