@@ -377,6 +377,20 @@ function addRow() {
   selectedProductId.value = ''
 }
 
+// ─── Carregar logo como base64
+async function loadLogo(): Promise<string | null> {
+  try {
+    const res = await fetch('/logo.jpg')
+    const blob = await res.blob()
+    return new Promise(resolve => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(blob)
+    })
+  } catch { return null }
+}
+
 // ─── Gerar PDF A4
 async function generatePDF() {
   if (rows.value.length === 0) return
@@ -394,6 +408,8 @@ async function generatePDF() {
   generating.value = true
   try {
     await nextTick()
+
+    const logoBase64 = (mode.value === 'full' || mode.value === 'flavor') ? await loadLogo() : null
 
     // Dimensões em mm
     const PAGE_W = 210
@@ -447,14 +463,23 @@ async function generatePDF() {
 
       } else if (mode.value === 'flavor') {
         // Etiqueta com linha de sabor para escrita manual
+        const logoSize = Math.min(cellH_mm * 0.28, cellW * 0.22, 7)
         let curY = y + 2.5
 
-        // Nome da loja
-        doc.setFontSize(5.5)
-        doc.setFont('helvetica', 'bold')
-        doc.setTextColor(120, 60, 10)
-        doc.text(storeName.value, x + cellW / 2, curY, { align: 'center', maxWidth: cellW - 2 })
-        curY += 3.5
+        if (logoBase64) {
+          doc.addImage(logoBase64, 'JPEG', x + cellW - logoSize - 1, y + 1, logoSize, logoSize)
+          // Nome da loja à esquerda da logo
+          doc.setFontSize(5.5)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(120, 60, 10)
+          doc.text(storeName.value, x + 2, curY, { maxWidth: cellW - logoSize - 4 })
+        } else {
+          doc.setFontSize(5.5)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(120, 60, 10)
+          doc.text(storeName.value, x + cellW / 2, curY, { align: 'center', maxWidth: cellW - 2 })
+        }
+        curY += Math.max(logoSize + 0.5, 3.5)
 
         // "Sabor:" + linha
         doc.setFontSize(6)
@@ -492,14 +517,22 @@ async function generatePDF() {
 
       } else {
         // Etiqueta completa
+        const logoSize = Math.min(cellH_mm * 0.28, cellW * 0.22, 7)
         let curY = y + 2.5
 
-        // Nome da loja
-        doc.setFontSize(5.5)
-        doc.setFont('helvetica', 'bold')
-        doc.setTextColor(120, 60, 10)
-        doc.text(storeName.value, x + cellW / 2, curY, { align: 'center', maxWidth: cellW - 2 })
-        curY += 3
+        if (logoBase64) {
+          doc.addImage(logoBase64, 'JPEG', x + cellW - logoSize - 1, y + 1, logoSize, logoSize)
+          doc.setFontSize(5.5)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(120, 60, 10)
+          doc.text(storeName.value, x + 2, curY, { maxWidth: cellW - logoSize - 4 })
+        } else {
+          doc.setFontSize(5.5)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(120, 60, 10)
+          doc.text(storeName.value, x + cellW / 2, curY, { align: 'center', maxWidth: cellW - 2 })
+        }
+        curY += Math.max(logoSize + 0.5, 3)
 
         // Nome do produto
         if (cell.productName) {
