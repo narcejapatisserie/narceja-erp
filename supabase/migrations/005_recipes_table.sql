@@ -26,5 +26,5 @@ CREATE POLICY "Authenticated users can update recipes" ON recipes FOR UPDATE USI
 CREATE POLICY "Authenticated users can delete recipes" ON recipes FOR DELETE USING (auth.role() = 'authenticated');
 
 -- Trigger updated_at
-CREATE TRIGGER recipes_updated_at BEFORE UPDATE ON recipes
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trg_recipes_updated_at BEFORE UPDATE ON recipes
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
