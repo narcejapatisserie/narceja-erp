@@ -214,7 +214,7 @@ const store = useRecipesStore()
 const rmStore = useRawMaterialsStore()
 const toast = useToast()
 
-const rawMaterials = computed(() => rmStore.rawMaterials)
+const rawMaterials = computed(() => rmStore.materials)
 
 const showModal = ref(false)
 const saving = ref(false)
@@ -340,6 +340,6 @@ function formatCurrency(v: number) {
 }
 
 onMounted(async () => {
-  await Promise.all([store.fetchRecipes(), rmStore.fetchRawMaterials()])
+  await Promise.all([store.fetchRecipes(), rmStore.fetchMaterials()])
 })
 </script>
