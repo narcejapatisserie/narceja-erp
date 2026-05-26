@@ -451,12 +451,12 @@ async function generatePDF() {
         const PAD = 1.5          // margem interna (mm)
         const cx = x + cellW / 2 // centro horizontal
         const logoSize = Math.min(cellH_mm * 0.30, cellW * 0.30, 8)
-        let curY = y + PAD
+        let curY = y + 0.5       // logo bem no topo
 
         // 1. Logo — centralizada no topo
         if (showLogo.value && logoBase64) {
           doc.addImage(logoBase64, 'JPEG', cx - logoSize / 2, curY, logoSize, logoSize)
-          curY += logoSize + 1
+          curY += logoSize + 3   // espaço generoso após logo
         }
 
         // 2. Nome da loja — centralizado
@@ -465,7 +465,7 @@ async function generatePDF() {
           doc.setFont('helvetica', 'bold')
           doc.setTextColor(120, 60, 10)
           doc.text(storeName.value, cx, curY, { align: 'center', maxWidth: cellW - PAD * 2 })
-          curY += 3.5
+          curY += 4
         }
 
         // 3. Nome do produto — centralizado
@@ -480,16 +480,16 @@ async function generatePDF() {
 
         // 4. Linha "Sabor:" — label + linha preenchível centralizados
         if (showFlavorLine.value) {
-          curY += 1
+          curY += 2              // espaço antes do sabor
           doc.setFontSize(6)
           doc.setFont('helvetica', 'bold')
           doc.setTextColor(20, 20, 20)
           doc.text('Sabor:', cx, curY, { align: 'center' })
-          curY += 3.5
+          curY += 2.5
           doc.setDrawColor(80, 80, 80)
           doc.setLineWidth(0.3)
           doc.line(x + PAD, curY, x + cellW - PAD, curY)
-          curY += 2.5
+          curY += 1.5            // pouco espaço após linha → barcode sobe
         }
 
         // 5. Código de barras — centralizado
