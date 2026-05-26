@@ -505,7 +505,7 @@ async function generatePDF() {
             const valReserve = showExpiration.value ? 5 : PAD
             const available = (y + cellH_mm - valReserve) - curY
             if (available > 2) {
-              const bcH = Math.min(cellH_mm * 0.45, available)
+              const bcH = Math.min(cellH_mm * 0.58, available)
               doc.addImage(img, 'PNG', x + PAD, curY, cellW - PAD * 2, bcH)
               curY += bcH
             }
