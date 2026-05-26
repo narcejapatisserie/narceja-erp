@@ -202,6 +202,30 @@ export interface Label {
   updated_at: string
 }
 
+export interface RecipeIngredient {
+  raw_material_id: string
+  raw_material_name?: string
+  quantity: number
+  unit: UnitMeasure
+  cost: number
+}
+
+export interface Recipe {
+  id: string
+  name: string
+  description?: string
+  yield_quantity: number
+  yield_unit: string
+  cost_total: number
+  cost_per_unit: number
+  ingredients: RecipeIngredient[]
+  notes?: string
+  is_active: boolean
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
 export interface DashboardKpis {
   revenue_today: number
   revenue_month: number

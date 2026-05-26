@@ -46,6 +46,27 @@
         <!-- Layout A4 -->
         <div class="card p-4 space-y-3">
           <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Layout na Folha A4</h3>
+
+          <!-- Presets -->
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              @click="cols = 3; rowsPerPage = 8"
+              :class="['p-2 rounded-lg border text-xs font-medium text-center transition-all', cols === 3 && rowsPerPage === 8 ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
+            >
+              <div class="font-bold">24 etiquetas</div>
+              <div class="opacity-75">3 × 8 (padrão)</div>
+            </button>
+            <button
+              type="button"
+              @click="cols = 8; rowsPerPage = 10"
+              :class="['p-2 rounded-lg border text-xs font-medium text-center transition-all', cols === 8 && rowsPerPage === 10 ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
+            >
+              <div class="font-bold">80 etiquetas</div>
+              <div class="opacity-75">8 × 10 (mini)</div>
+            </button>
+          </div>
+
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="label">Colunas</label>
@@ -54,6 +75,9 @@
                 <option :value="2">2 colunas</option>
                 <option :value="3">3 colunas</option>
                 <option :value="4">4 colunas</option>
+                <option :value="5">5 colunas</option>
+                <option :value="6">6 colunas</option>
+                <option :value="8">8 colunas</option>
               </select>
             </div>
             <div>
@@ -64,6 +88,7 @@
                 <option :value="7">7 linhas</option>
                 <option :value="8">8 linhas</option>
                 <option :value="10">10 linhas</option>
+                <option :value="12">12 linhas</option>
               </select>
             </div>
           </div>

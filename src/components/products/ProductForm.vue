@@ -121,41 +121,68 @@
       </div>
     </div>
 
-    <!-- Receita -->
-    <div>
-      <div class="flex items-center justify-between mb-3">
-        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">🧪 Receita / Ingredientes</h4>
-        <button type="button" @click="addRecipeItem" class="text-xs text-narceja-600 hover:text-narceja-700 flex items-center gap-1">
-          <i class="pi pi-plus"></i> Adicionar ingrediente
-        </button>
-      </div>
+    <!-- Receita vinculada -->
+    <div class="space-y-3">
+      <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">🧪 Receita do Produto</h4>
 
-      <div v-if="form.recipe.length === 0" class="text-sm text-gray-400 text-center py-4 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-        Nenhum ingrediente. Clique em "Adicionar ingrediente".
-      </div>
-
-      <div class="space-y-2">
-        <div
-          v-for="(item, idx) in form.recipe"
-          :key="idx"
-          class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2"
-        >
-          <select v-model="item.raw_material_id" class="input flex-1 text-sm" @change="updateItemUnit(item)">
-            <option value="">Selecionar matéria-prima</option>
-            <option v-for="rm in rawMaterials" :key="rm.id" :value="rm.id">{{ rm.name }} ({{ rm.unit }})</option>
+      <!-- Seletor de receita cadastrada -->
+      <div>
+        <label class="label">Vincular receita cadastrada</label>
+        <div class="flex gap-2">
+          <select v-model="form.recipe_id" class="input flex-1" @change="onRecipeSelect">
+            <option value="">— Sem receita vinculada —</option>
+            <option v-for="r in recipes" :key="r.id" :value="r.id">
+              {{ r.name }} (rende {{ r.yield_quantity }} {{ r.yield_unit }} · custo {{ formatCurrency(r.cost_per_unit) }}/{{ r.yield_unit }})
+            </option>
           </select>
-          <input
-            v-model.number="item.quantity"
-            type="number"
-            step="0.001"
-            min="0"
-            class="input w-24 text-sm"
-            placeholder="Qtd"
-          />
-          <span class="text-xs text-gray-500 w-10 text-center">{{ item.unit }}</span>
-          <button type="button" @click="form.recipe.splice(idx, 1)" class="text-red-400 hover:text-red-600 p-1">
-            <i class="pi pi-times text-sm"></i>
+          <RouterLink to="/receitas" target="_blank" class="btn-secondary px-3 flex items-center gap-1 text-sm whitespace-nowrap">
+            <i class="pi pi-external-link text-xs"></i>
+            <span class="hidden sm:inline">Gerenciar</span>
+          </RouterLink>
+        </div>
+      </div>
+
+      <!-- Resumo da receita selecionada -->
+      <div v-if="selectedRecipe" class="bg-narceja-50 dark:bg-gray-700/50 rounded-lg p-3 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ selectedRecipe.name }}</span>
+          <span class="text-xs badge-secondary">{{ selectedRecipe.yield_quantity }} {{ selectedRecipe.yield_unit }}</span>
+        </div>
+        <div class="space-y-1">
+          <div v-for="ing in selectedRecipe.ingredients" :key="ing.raw_material_id" class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+            <span>{{ ing.raw_material_name }}</span>
+            <span>{{ ing.quantity }} {{ ing.unit }} — {{ formatCurrency(ing.cost) }}</span>
+          </div>
+        </div>
+        <div class="pt-1 border-t border-narceja-200 dark:border-gray-600 flex justify-between text-sm font-semibold">
+          <span class="text-gray-600 dark:text-gray-400">Custo por unidade</span>
+          <span class="text-narceja-700 dark:text-narceja-400">{{ formatCurrency(selectedRecipe.cost_per_unit) }}</span>
+        </div>
+      </div>
+
+      <!-- Ingredientes adicionais (casquinha, cobertura, etc.) -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="label mb-0 text-xs">Ingredientes adicionais (casquinha, cobertura...)</label>
+          <button type="button" @click="addRecipeItem" class="text-xs text-narceja-600 hover:text-narceja-700 flex items-center gap-1">
+            <i class="pi pi-plus"></i> Adicionar
           </button>
+        </div>
+        <div v-if="form.recipe.length === 0" class="text-xs text-gray-400 text-center py-3 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+          Nenhum ingrediente adicional
+        </div>
+        <div class="space-y-2">
+          <div v-for="(item, idx) in form.recipe" :key="idx" class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2">
+            <select v-model="item.raw_material_id" class="input flex-1 text-sm" @change="updateItemUnit(item)">
+              <option value="">Selecionar matéria-prima</option>
+              <option v-for="rm in rawMaterials" :key="rm.id" :value="rm.id">{{ rm.name }} ({{ rm.unit }})</option>
+            </select>
+            <input v-model.number="item.quantity" type="number" step="0.001" min="0" class="input w-24 text-sm" placeholder="Qtd" />
+            <span class="text-xs text-gray-500 w-10 text-center">{{ item.unit }}</span>
+            <button type="button" @click="form.recipe.splice(idx, 1)" class="text-red-400 hover:text-red-600 p-1">
+              <i class="pi pi-times text-sm"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -173,8 +200,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useProductsStore } from '@/stores/products'
 import { useRawMaterialsStore } from '@/stores/rawMaterials'
+import { useRecipesStore } from '@/stores/recipes'
 import { useBarcode } from '@/composables/useBarcode'
 import { formatCurrency, formatPercent } from '@/utils/formatters'
 import type { Product, RecipeItem, UnitMeasure } from '@/types'
@@ -184,10 +213,13 @@ const emit = defineEmits<{ saved: []; cancel: [] }>()
 
 const store = useProductsStore()
 const rmStore = useRawMaterialsStore()
+const recipesStore = useRecipesStore()
 const { generateSKU, generateBarcodValue } = useBarcode()
 
 const saving = ref(false)
 const rawMaterials = computed(() => rmStore.materials)
+const recipes = computed(() => recipesStore.recipes)
+const selectedRecipe = computed(() => recipes.value.find(r => r.id === form.value.recipe_id) || null)
 
 const existingCategories = computed(() => {
   const cats = store.products.map(p => p.category).filter(Boolean) as string[]
@@ -197,13 +229,13 @@ const existingCategories = computed(() => {
 interface ProductFormData {
   name: string; description: string; category: string; sku: string; barcode: string
   sale_price: number; stock_quantity: number; min_stock: number; unit: UnitMeasure
-  recipe: RecipeItem[]; is_active: boolean; image_url: string
+  recipe: RecipeItem[]; recipe_id: string; is_active: boolean; image_url: string
 }
 
 const defaultForm = (): ProductFormData => ({
   name: '', description: '', category: '', sku: '', barcode: '',
   sale_price: 0, stock_quantity: 0, min_stock: 0, unit: 'un',
-  recipe: [], is_active: true, image_url: '',
+  recipe: [], recipe_id: '', is_active: true, image_url: '',
 })
 
 const form = ref<ProductFormData>(defaultForm())
@@ -223,6 +255,7 @@ watch(() => props.product, (p) => {
       min_stock: p.min_stock,
       unit: p.unit,
       recipe: p.recipe ? [...p.recipe] : [],
+      recipe_id: (p as any).recipe_id || '',
       is_active: p.is_active,
       image_url: p.image_url || '',
     }
@@ -264,12 +297,20 @@ async function handleImageUpload(event: Event) {
   }
 }
 
+function onRecipeSelect() {
+  // custo já é recalculado via computed
+}
+
 const calculatedCost = computed(() => {
-  return form.value.recipe.reduce((total, item) => {
+  // custo da receita vinculada (por unidade)
+  const recipeCost = selectedRecipe.value?.cost_per_unit || 0
+  // custo dos ingredientes adicionais (casquinha, cobertura...)
+  const extraCost = form.value.recipe.reduce((total, item) => {
     const rm = rawMaterials.value.find(m => m.id === item.raw_material_id)
     if (!rm || !item.quantity) return total
     return total + rm.cost_per_unit * item.quantity
   }, 0)
+  return recipeCost + extraCost
 })
 
 const calculatedProfit = computed(() => form.value.sale_price - calculatedCost.value)
@@ -296,7 +337,11 @@ async function handleSubmit() {
     const data = {
       ...form.value,
       recipe: form.value.recipe.filter(i => i.raw_material_id && i.quantity > 0),
+      recipe_id: form.value.recipe_id || undefined,
       image_url: form.value.image_url || undefined,
+      cost_price: calculatedCost.value,
+      margin_percent: form.value.sale_price > 0 ? calculatedMargin.value : 0,
+      profit_value: calculatedProfit.value,
     }
     if (props.product) {
       await store.update(props.product.id, data)
@@ -309,5 +354,8 @@ async function handleSubmit() {
   }
 }
 
-onMounted(() => rmStore.fetchMaterials())
+onMounted(() => {
+  rmStore.fetchMaterials()
+  recipesStore.fetchRecipes()
+})
 </script>
