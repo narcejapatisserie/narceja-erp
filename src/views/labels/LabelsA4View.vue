@@ -61,23 +61,23 @@
             <button
               type="button"
               @click="cols = 3; rowsPerPage = 8; landscape = false"
-              :class="['p-2 rounded-lg border text-xs font-medium text-center transition-all', cols === 3 && rowsPerPage === 8 && !landscape ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
+              :class="['p-2 rounded-lg border text-xs font-medium text-center transition-all', cols === 3 && rowsPerPage === 8 ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
             >
               <div class="font-bold">24 etiquetas</div>
               <div class="opacity-75">3 × 8 (portrait)</div>
             </button>
             <button
               type="button"
-              @click="cols = 6; rowsPerPage = 10; landscape = true"
-              :class="['p-2 rounded-lg border text-xs font-medium text-center transition-all', cols === 6 && rowsPerPage === 10 && landscape ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
+              @click="cols = 6; rowsPerPage = 10"
+              :class="['p-2 rounded-lg border text-xs font-medium text-center transition-all', cols === 6 && rowsPerPage === 10 ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
             >
               <div class="font-bold">60 etiquetas</div>
-              <div class="opacity-75">6 × 10 (paisagem)</div>
+              <div class="opacity-75">6 × 10 (retrato)</div>
             </button>
             <button
               type="button"
-              @click="cols = 8; rowsPerPage = 10; landscape = false"
-              :class="['p-2 rounded-lg border text-xs font-medium text-center transition-all', cols === 8 && rowsPerPage === 10 && !landscape ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
+              @click="cols = 8; rowsPerPage = 10"
+              :class="['p-2 rounded-lg border text-xs font-medium text-center transition-all', cols === 8 && rowsPerPage === 10 ? 'bg-narceja-500 border-narceja-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-narceja-300']"
             >
               <div class="font-bold">80 etiquetas</div>
               <div class="opacity-75">8 × 10 (mini)</div>
@@ -277,7 +277,6 @@ const toast = useToast()
 const mode = ref<'barcode-only' | 'full' | 'flavor'>('full') // mantido para compatibilidade interna
 const cols = ref(3)
 const rowsPerPage = ref(8)
-const landscape = ref(false)
 const storeName = ref('Narceja Pâtisserie')
 const generating = ref(false)
 
@@ -322,19 +321,19 @@ const previewCells = computed((): (LabelRow | null)[] => {
 
 // ─── Estilos do preview
 const PREVIEW_SCALE = 0.28 // A4 210×297mm → preview em px (×2.83 px/mm)
-const A4_W_PX = computed(() => (landscape.value ? 297 : 210) * 2.83 * PREVIEW_SCALE)
-const A4_H_PX = computed(() => (landscape.value ? 210 : 297) * 2.83 * PREVIEW_SCALE)
+const A4_W_PX = 210 * 2.83 * PREVIEW_SCALE
+const A4_H_PX = 297 * 2.83 * PREVIEW_SCALE
 
 const previewPageStyle = computed(() => ({
-  width: `${A4_W_PX.value}px`,
-  height: `${A4_H_PX.value}px`,
+  width: `${A4_W_PX}px`,
+  height: `${A4_H_PX}px`,
 }))
 const previewGridStyle = computed(() => ({
   gridTemplateColumns: `repeat(${cols.value}, 1fr)`,
   gridTemplateRows: `repeat(${rowsPerPage.value}, 1fr)`,
 }))
 
-const cellH = computed(() => A4_H_PX.value / rowsPerPage.value)
+const cellH = computed(() => A4_H_PX / rowsPerPage.value)
 
 const previewStoreStyle = computed(() => ({ fontSize: `${Math.max(5, cellH.value * 0.13)}px` }))
 const previewNameStyle = computed(() => ({ fontSize: `${Math.max(6, cellH.value * 0.16)}px` }))
@@ -366,7 +365,7 @@ function renderPreviewBarcodes() {
   })
 }
 
-watch([previewCells, cols, rowsPerPage, showBarcode, landscape], renderPreviewBarcodes, { flush: 'post' })
+watch([previewCells, cols, rowsPerPage, showBarcode], renderPreviewBarcodes, { flush: 'post' })
 
 // ─── Preencher a partir do produto selecionado
 function fillFromProduct() {
@@ -418,9 +417,9 @@ async function generatePDF() {
 
     const logoBase64 = showLogo.value ? await loadLogo() : null
 
-    // Dimensões em mm
-    const PAGE_W = landscape.value ? 297 : 210
-    const PAGE_H = landscape.value ? 210 : 297
+    // Dimensões em mm (sempre retrato)
+    const PAGE_W = 210
+    const PAGE_H = 297
     const MARGIN_X = 8
     const MARGIN_Y = 8
     const GAP = 2
@@ -428,7 +427,7 @@ async function generatePDF() {
     const cellW = (PAGE_W - MARGIN_X * 2 - GAP * (cols.value - 1)) / cols.value
     const cellH_mm = (PAGE_H - MARGIN_Y * 2 - GAP * (rowsPerPage.value - 1)) / rowsPerPage.value
 
-    const doc = new jsPDF({ orientation: landscape.value ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' })
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
     const cells = expandedCells.value
     let page = 0
