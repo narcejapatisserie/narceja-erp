@@ -468,14 +468,21 @@ async function generatePDF() {
           curY += 4
         }
 
-        // 3. Nome do produto — centralizado
+        // 3. Nome do produto — centralizado, fonte ajustada para caber em 1-2 linhas
         if (showProductName.value && cell.productName) {
-          doc.setFontSize(6.5)
+          // Tenta fonte maior, se não couber numa linha reduz
+          let fontSize = 6.5
           doc.setFont('helvetica', 'bold')
+          doc.setFontSize(fontSize)
+          let nameLines = doc.splitTextToSize(cell.productName, cellW - PAD * 2)
+          if (nameLines.length > 1) {
+            fontSize = 5.5
+            doc.setFontSize(fontSize)
+            nameLines = doc.splitTextToSize(cell.productName, cellW - PAD * 2)
+          }
           doc.setTextColor(20, 20, 20)
-          const nameLines = doc.splitTextToSize(cell.productName, cellW - PAD * 2)
           doc.text(nameLines, cx, curY, { align: 'center' })
-          curY += nameLines.length * 3.5
+          curY += nameLines.length * (fontSize * 0.55)
         }
 
         // 4. Linha "Sabor:" — label + linha preenchível centralizados
