@@ -447,51 +447,52 @@ async function generatePDF() {
       doc.rect(x, y, cellW, cellH_mm)
 
       {
-        // Renderização baseada em checkboxes
-        const logoSize = Math.min(cellH_mm * 0.28, cellW * 0.22, 7)
-        let curY = y + 1.5
+        // ── Tudo centralizado horizontalmente, sem sobreposição ──
+        const PAD = 1.5          // margem interna (mm)
+        const cx = x + cellW / 2 // centro horizontal
+        const logoSize = Math.min(cellH_mm * 0.30, cellW * 0.30, 8)
+        let curY = y + PAD
 
-        // Logo (canto superior direito)
+        // 1. Logo — centralizada no topo
         if (showLogo.value && logoBase64) {
-          doc.addImage(logoBase64, 'JPEG', x + cellW - logoSize - 0.8, y + 0.8, logoSize, logoSize)
+          doc.addImage(logoBase64, 'JPEG', cx - logoSize / 2, curY, logoSize, logoSize)
+          curY += logoSize + 1
         }
 
-        // Nome da loja
+        // 2. Nome da loja — centralizado
         if (showStoreName.value) {
           doc.setFontSize(5.5)
           doc.setFont('helvetica', 'bold')
           doc.setTextColor(120, 60, 10)
-          const storeMaxW = (showLogo.value && logoBase64) ? cellW - logoSize - 3 : cellW - 2
-          doc.text(storeName.value, x + 1.5, curY + 1.5, { maxWidth: storeMaxW })
-          curY += Math.max((showLogo.value && logoBase64) ? logoSize + 0.5 : 0, 3.5)
-        } else if (showLogo.value && logoBase64) {
-          curY += logoSize + 0.5
+          doc.text(storeName.value, cx, curY, { align: 'center', maxWidth: cellW - PAD * 2 })
+          curY += 3.5
         }
 
-        // Nome do produto
+        // 3. Nome do produto — centralizado
         if (showProductName.value && cell.productName) {
           doc.setFontSize(6.5)
           doc.setFont('helvetica', 'bold')
           doc.setTextColor(20, 20, 20)
-          const nameLines = doc.splitTextToSize(cell.productName, cellW - 2)
-          doc.text(nameLines, x + cellW / 2, curY, { align: 'center' })
-          curY += nameLines.length * 3.2
+          const nameLines = doc.splitTextToSize(cell.productName, cellW - PAD * 2)
+          doc.text(nameLines, cx, curY, { align: 'center' })
+          curY += nameLines.length * 3.5
         }
 
-        // Linha "Sabor:"
+        // 4. Linha "Sabor:" — label + linha preenchível centralizados
         if (showFlavorLine.value) {
+          curY += 1
           doc.setFontSize(6)
           doc.setFont('helvetica', 'bold')
           doc.setTextColor(20, 20, 20)
-          doc.text('Sabor:', x + 2, curY)
-          curY += 4
+          doc.text('Sabor:', cx, curY, { align: 'center' })
+          curY += 3.5
           doc.setDrawColor(80, 80, 80)
           doc.setLineWidth(0.3)
-          doc.line(x + 2, curY, x + cellW - 2, curY)
-          curY += 2
+          doc.line(x + PAD, curY, x + cellW - PAD, curY)
+          curY += 2.5
         }
 
-        // Código de barras
+        // 5. Código de barras — centralizado
         if (showBarcode.value && cell.barcode) {
           try {
             const canvas = document.createElement('canvas')
@@ -500,21 +501,24 @@ async function generatePDF() {
               displayValue: true, fontSize: 9, margin: 2, background: '#ffffff',
             })
             const img = canvas.toDataURL('image/png')
-            const maxBcH = y + cellH_mm - curY - (showExpiration.value && cell.expirationDate ? 4 : 1.5)
-            const bcH = Math.min(cellH_mm * 0.45, maxBcH)
+            // Espaço disponível até o fundo (reserva para validade se ativo)
+            const bottomReserve = (showExpiration.value && cell.expirationDate) ? 4 : PAD
+            const maxBcH = y + cellH_mm - curY - bottomReserve
+            const bcW = cellW - PAD * 2
+            const bcH = Math.min(cellH_mm * 0.42, maxBcH)
             if (bcH > 3) {
-              doc.addImage(img, 'PNG', x + 2, curY, cellW - 4, bcH)
+              doc.addImage(img, 'PNG', x + PAD, curY, bcW, bcH)
               curY += bcH + 1
             }
           } catch { /* ignora */ }
         }
 
-        // Validade
+        // 6. Validade — centralizada, sempre no fundo
         if (showExpiration.value && cell.expirationDate) {
           doc.setFontSize(5)
           doc.setFont('helvetica', 'normal')
           doc.setTextColor(80, 80, 80)
-          doc.text(`Val: ${formatDate(cell.expirationDate)}`, x + cellW / 2, y + cellH_mm - 1.5, { align: 'center' })
+          doc.text(`Val: ${formatDate(cell.expirationDate)}`, cx, y + cellH_mm - PAD, { align: 'center' })
         }
       }
     }
