@@ -35,12 +35,12 @@
 
     <!-- Gastos por comprador -->
     <div v-if="totalBruno > 0 || totalFelipe > 0" class="grid grid-cols-2 gap-4">
-      <div class="card p-4">
+      <div class="card p-4 text-center">
         <p class="text-xs text-gray-500 mb-1">Compras — Bruno</p>
         <p class="text-xl font-bold text-red-600">{{ formatCurrency(totalBruno) }}</p>
         <p class="text-xs text-gray-400 mt-1">{{ countBruno }} lançamentos</p>
       </div>
-      <div class="card p-4">
+      <div class="card p-4 text-center">
         <p class="text-xs text-gray-500 mb-1">Compras — Felipe</p>
         <p class="text-xl font-bold text-red-600">{{ formatCurrency(totalFelipe) }}</p>
         <p class="text-xs text-gray-400 mt-1">{{ countFelipe }} lançamentos</p>
