@@ -44,10 +44,13 @@
         <div class="space-y-1">
           <div
             v-for="ing in recipe.ingredients"
-            :key="ing.raw_material_id"
+            :key="ing.raw_material_id || ing.recipe_id"
             class="flex items-center justify-between text-sm"
           >
-            <span class="text-gray-600 dark:text-gray-400 truncate">{{ ing.raw_material_name || ing.raw_material_id }}</span>
+            <div class="flex items-center gap-1.5 truncate">
+              <i v-if="ing.recipe_id" class="pi pi-book text-narceja-400 text-xs flex-shrink-0"></i>
+              <span class="text-gray-600 dark:text-gray-400 truncate">{{ ing.raw_material_name || ing.recipe_name || ing.raw_material_id }}</span>
+            </div>
             <span class="text-gray-500 text-xs flex-shrink-0 ml-2">{{ ing.quantity }} {{ ing.unit }}</span>
           </div>
         </div>
@@ -110,13 +113,18 @@
             <div>
               <div class="flex items-center justify-between mb-2">
                 <label class="label mb-0">Ingredientes</label>
-                <button type="button" @click="addIngredient" class="text-xs text-narceja-600 hover:text-narceja-700 flex items-center gap-1">
-                  <i class="pi pi-plus"></i> Adicionar
-                </button>
+                <div class="flex gap-2">
+                  <button type="button" @click="addIngredient('material')" class="text-xs text-narceja-600 hover:text-narceja-700 flex items-center gap-1">
+                    <i class="pi pi-plus"></i> Matéria-prima
+                  </button>
+                  <button type="button" @click="addIngredient('recipe')" class="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                    <i class="pi pi-plus"></i> Receita
+                  </button>
+                </div>
               </div>
 
               <div v-if="form.ingredients.length === 0" class="text-sm text-gray-400 text-center py-4 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-                Nenhum ingrediente. Clique em "Adicionar".
+                Nenhum ingrediente. Adicione uma matéria-prima ou outra receita.
               </div>
 
               <div v-else class="space-y-2">
@@ -125,28 +133,39 @@
                   :key="idx"
                   class="grid grid-cols-12 gap-2 items-center"
                 >
-                  <!-- Matéria-prima -->
+                  <!-- Matéria-prima ou Receita -->
                   <div class="col-span-5">
-                    <select v-model="ing.raw_material_id" class="input text-sm py-1.5" @change="onIngredientChange(idx)">
-                      <option value="">Selecionar...</option>
-                      <option v-for="rm in rawMaterials" :key="rm.id" :value="rm.id">{{ rm.name }}</option>
-                    </select>
+                    <div v-if="ing.recipe_id !== undefined">
+                      <select v-model="ing.recipe_id" class="input text-sm py-1.5 border-blue-200 dark:border-blue-700" @change="onRecipeIngredientChange(idx)">
+                        <option value="">Selecionar receita...</option>
+                        <option v-for="r in availableRecipes(editingId)" :key="r.id" :value="r.id">{{ r.name }}</option>
+                      </select>
+                    </div>
+                    <div v-else>
+                      <select v-model="ing.raw_material_id" class="input text-sm py-1.5" @change="onIngredientChange(idx)">
+                        <option value="">Selecionar...</option>
+                        <option v-for="rm in rawMaterials" :key="rm.id" :value="rm.id">{{ rm.name }}</option>
+                      </select>
+                    </div>
                   </div>
                   <!-- Quantidade -->
                   <div class="col-span-3">
-                    <input v-model.number="ing.quantity" type="number" step="0.001" min="0" class="input text-sm py-1.5" placeholder="Qtd" @input="onIngredientChange(idx)" />
+                    <input v-model.number="ing.quantity" type="number" step="0.001" min="0" class="input text-sm py-1.5" placeholder="Qtd" @input="ing.recipe_id !== undefined ? onRecipeIngredientChange(idx) : onIngredientChange(idx)" />
                   </div>
                   <!-- Unidade -->
                   <div class="col-span-2">
-                    <select v-model="ing.unit" class="input text-sm py-1.5">
-                      <option value="kg">kg</option>
-                      <option value="g">g</option>
-                      <option value="un">un</option>
-                      <option value="l">l</option>
-                      <option value="ml">ml</option>
+                    <select v-model="ing.unit" class="input text-sm py-1.5" @change="ing.recipe_id !== undefined ? onRecipeIngredientChange(idx) : onIngredientChange(idx)">
+                      <option v-if="ing.recipe_id !== undefined" value="un">un</option>
+                      <template v-else>
+                        <option value="kg">kg</option>
+                        <option value="g">g</option>
+                        <option value="un">un</option>
+                        <option value="l">l</option>
+                        <option value="ml">ml</option>
+                      </template>
                     </select>
                   </div>
-                  <!-- Remover -->
+                  <!-- Custo + Remover -->
                   <div class="col-span-2 text-right">
                     <span class="text-xs text-gray-400 block">{{ formatCurrency(ing.cost) }}</span>
                     <button type="button" @click="form.ingredients.splice(idx, 1); recalcCost()" class="text-red-400 hover:text-red-600">
@@ -221,6 +240,11 @@ const saving = ref(false)
 const editingId = ref<string | null>(null)
 const deleteTarget = ref<Recipe | null>(null)
 
+interface FormIngredient extends RecipeIngredient {
+  recipe_id?: string
+  recipe_name?: string
+}
+
 interface FormData {
   name: string
   description: string
@@ -228,7 +252,7 @@ interface FormData {
   yield_unit: string
   cost_total: number
   cost_per_unit: number
-  ingredients: RecipeIngredient[]
+  ingredients: FormIngredient[]
   notes: string
 }
 
@@ -244,6 +268,11 @@ const emptyForm = (): FormData => ({
 })
 
 const form = ref<FormData>(emptyForm())
+
+// Receitas disponíveis para usar como ingrediente (exclui a atual para evitar recursão)
+function availableRecipes(currentId: string | null) {
+  return store.recipes.filter(r => r.id !== currentId && r.is_active)
+}
 
 function openCreate() {
   editingId.value = null
@@ -266,8 +295,12 @@ function openEdit(recipe: Recipe) {
   showModal.value = true
 }
 
-function addIngredient() {
-  form.value.ingredients.push({ raw_material_id: '', raw_material_name: '', quantity: 0, unit: 'kg', cost: 0 })
+function addIngredient(type: 'material' | 'recipe') {
+  if (type === 'recipe') {
+    form.value.ingredients.push({ raw_material_id: '', recipe_id: '', recipe_name: '', quantity: 1, unit: 'un', cost: 0 })
+  } else {
+    form.value.ingredients.push({ raw_material_id: '', raw_material_name: '', quantity: 0, unit: 'kg', cost: 0 })
+  }
 }
 
 function onIngredientChange(idx: number) {
@@ -275,11 +308,22 @@ function onIngredientChange(idx: number) {
   const rm = rawMaterials.value.find(r => r.id === ing.raw_material_id)
   if (rm) {
     ing.raw_material_name = rm.name
-    // converter unidade se necessário
     let qty = ing.quantity
     if (ing.unit === 'g' && rm.unit === 'kg') qty = ing.quantity / 1000
     else if (ing.unit === 'kg' && rm.unit === 'g') qty = ing.quantity * 1000
     ing.cost = parseFloat((rm.cost_per_unit * qty).toFixed(4))
+  }
+  recalcCost()
+}
+
+function onRecipeIngredientChange(idx: number) {
+  const ing = form.value.ingredients[idx]
+  const recipe = store.recipes.find(r => r.id === ing.recipe_id)
+  if (recipe) {
+    ing.recipe_name = recipe.name
+    ing.raw_material_name = recipe.name
+    // custo = custo_por_unidade da receita × quantidade usada
+    ing.cost = parseFloat((recipe.cost_per_unit * (ing.quantity || 0)).toFixed(4))
   }
   recalcCost()
 }
@@ -317,7 +361,7 @@ async function saveRecipe() {
       toast.success('Receita criada!')
     }
     showModal.value = false
-  } catch (e) {
+  } catch {
     toast.error('Erro ao salvar receita.')
   } finally {
     saving.value = false

@@ -48,6 +48,8 @@ export interface Supplier {
 export interface RecipeItem {
   raw_material_id: string
   raw_material_name?: string
+  recipe_id?: string
+  recipe_name?: string
   quantity: number
   unit: UnitMeasure
   cost: number
@@ -205,6 +207,8 @@ export interface Label {
 export interface RecipeIngredient {
   raw_material_id: string
   raw_material_name?: string
+  recipe_id?: string
+  recipe_name?: string
   quantity: number
   unit: UnitMeasure
   cost: number

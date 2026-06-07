@@ -49,24 +49,26 @@
 
     <!-- Filtros -->
     <div class="card p-4 flex flex-wrap gap-3">
-      <select v-model="filterType" class="input w-36">
+      <select v-model="filterType" class="input w-full sm:w-36">
         <option value="">Todos</option>
         <option value="income">Receitas</option>
         <option value="expense">Despesas</option>
       </select>
-      <select v-model="filterStatus" class="input w-40">
+      <select v-model="filterStatus" class="input w-full sm:w-40">
         <option value="">Todos os status</option>
         <option value="pending">Pendentes</option>
         <option value="paid">Pagos</option>
         <option value="overdue">Vencidos</option>
         <option value="cancelled">Cancelados</option>
       </select>
-      <input v-model="filterStart" type="date" class="input w-40" />
-      <input v-model="filterEnd" type="date" class="input w-40" />
-      <button @click="loadTransactions" class="btn-primary px-4">Filtrar</button>
+      <div class="flex gap-3 w-full sm:w-auto">
+        <input v-model="filterStart" type="date" class="input flex-1 sm:w-40" />
+        <input v-model="filterEnd" type="date" class="input flex-1 sm:w-40" />
+      </div>
+      <button @click="loadTransactions" class="btn-primary w-full sm:w-auto px-4">Filtrar</button>
     </div>
 
-    <!-- Tabela -->
+    <!-- Tabela com scroll horizontal no mobile -->
     <div class="card overflow-hidden">
       <div v-if="store.loading && store.transactions.length === 0" class="flex items-center justify-center py-16">
         <i class="pi pi-spin pi-spinner text-narceja-500 text-3xl"></i>
@@ -76,66 +78,68 @@
         <p>Nenhum lançamento encontrado</p>
         <button @click="openForm()" class="btn-primary mt-4 text-sm">Criar primeiro lançamento</button>
       </div>
-      <table v-else class="w-full text-sm">
-        <thead class="bg-gray-50 dark:bg-gray-800/50">
-          <tr class="text-left text-gray-500 dark:text-gray-400">
-            <th class="px-4 py-3 font-medium">Descrição</th>
-            <th class="px-4 py-3 font-medium hidden md:table-cell">Categoria</th>
-            <th class="px-4 py-3 font-medium hidden md:table-cell">Comprador</th>
-            <th class="px-4 py-3 font-medium">Vencimento</th>
-            <th class="px-4 py-3 font-medium text-right">Valor</th>
-            <th class="px-4 py-3 font-medium text-center">Status</th>
-            <th class="px-4 py-3 font-medium text-center">Ações</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-          <tr v-for="tx in store.transactions" :key="tx.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
-            <td class="px-4 py-3">
-              <div class="flex items-center gap-2">
-                <span :class="['w-2 h-2 rounded-full flex-shrink-0', tx.type === 'income' ? 'bg-green-500' : 'bg-red-500']"></span>
-                <span class="text-gray-900 dark:text-white font-medium">{{ tx.description }}</span>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-gray-500 hidden md:table-cell capitalize">{{ CATEGORY_LABELS[tx.category] }}</td>
-            <td class="px-4 py-3 hidden md:table-cell">
-              <span v-if="tx.notes?.includes('Comprador: Bruno')" class="badge badge-warning">Bruno</span>
-              <span v-else-if="tx.notes?.includes('Comprador: Felipe')" class="badge badge-info">Felipe</span>
-              <span v-else class="text-gray-400">—</span>
-            </td>
-            <td class="px-4 py-3 text-gray-500">{{ formatDate(tx.due_date) }}</td>
-            <td class="px-4 py-3 text-right font-semibold" :class="tx.type === 'income' ? 'text-green-600' : 'text-red-600'">
-              {{ tx.type === 'income' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
-            </td>
-            <td class="px-4 py-3 text-center">
-              <span :class="['badge',
-                tx.status === 'paid' ? 'badge-success' :
-                tx.status === 'overdue' ? 'badge-danger' :
-                tx.status === 'cancelled' ? 'badge-secondary' :
-                'badge-warning']">
-                {{ STATUS_LABELS[tx.status] }}
-              </span>
-            </td>
-            <td class="px-4 py-3">
-              <div class="flex items-center justify-center gap-1">
-                <button
-                  v-if="tx.status === 'pending'"
-                  @click="handlePay(tx)"
-                  class="p-1.5 rounded hover:bg-green-50 text-green-600 transition-colors"
-                  v-tooltip="'Marcar como pago'"
-                >
-                  <i class="pi pi-check text-sm"></i>
-                </button>
-                <button @click="openForm(tx)" class="p-1.5 rounded hover:bg-narceja-50 text-narceja-600 transition-colors" v-tooltip="'Editar'">
-                  <i class="pi pi-pencil text-sm"></i>
-                </button>
-                <button @click="handleDelete(tx)" class="p-1.5 rounded hover:bg-red-50 text-red-500 transition-colors" v-tooltip="'Excluir'">
-                  <i class="pi pi-trash text-sm"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-else class="overflow-x-auto">
+        <table class="w-full text-sm min-w-[640px]">
+          <thead class="bg-gray-50 dark:bg-gray-800/50">
+            <tr class="text-left text-gray-500 dark:text-gray-400">
+              <th class="px-4 py-3 font-medium">Descrição</th>
+              <th class="px-4 py-3 font-medium">Categoria</th>
+              <th class="px-4 py-3 font-medium">Comprador</th>
+              <th class="px-4 py-3 font-medium">Vencimento</th>
+              <th class="px-4 py-3 font-medium text-right">Valor</th>
+              <th class="px-4 py-3 font-medium text-center">Status</th>
+              <th class="px-4 py-3 font-medium text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+            <tr v-for="tx in store.transactions" :key="tx.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <span :class="['w-2 h-2 rounded-full flex-shrink-0', tx.type === 'income' ? 'bg-green-500' : 'bg-red-500']"></span>
+                  <span class="text-gray-900 dark:text-white font-medium">{{ tx.description }}</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-gray-500 capitalize">{{ CATEGORY_LABELS[tx.category] }}</td>
+              <td class="px-4 py-3">
+                <span v-if="tx.notes?.includes('Comprador: Bruno')" class="badge badge-warning">Bruno</span>
+                <span v-else-if="tx.notes?.includes('Comprador: Felipe')" class="badge badge-info">Felipe</span>
+                <span v-else class="text-gray-400">—</span>
+              </td>
+              <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{{ formatDate(tx.due_date) }}</td>
+              <td class="px-4 py-3 text-right font-semibold whitespace-nowrap" :class="tx.type === 'income' ? 'text-green-600' : 'text-red-600'">
+                {{ tx.type === 'income' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
+              </td>
+              <td class="px-4 py-3 text-center">
+                <span :class="['badge',
+                  tx.status === 'paid' ? 'badge-success' :
+                  tx.status === 'overdue' ? 'badge-danger' :
+                  tx.status === 'cancelled' ? 'badge-secondary' :
+                  'badge-warning']">
+                  {{ STATUS_LABELS[tx.status] }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex items-center justify-center gap-1">
+                  <button
+                    v-if="tx.status === 'pending'"
+                    @click="handlePay(tx)"
+                    class="p-1.5 rounded hover:bg-green-50 text-green-600 transition-colors"
+                    v-tooltip="'Marcar como pago'"
+                  >
+                    <i class="pi pi-check text-sm"></i>
+                  </button>
+                  <button @click="openForm(tx)" class="p-1.5 rounded hover:bg-narceja-50 text-narceja-600 transition-colors" v-tooltip="'Editar'">
+                    <i class="pi pi-pencil text-sm"></i>
+                  </button>
+                  <button @click="handleDelete(tx)" class="p-1.5 rounded hover:bg-red-50 text-red-500 transition-colors" v-tooltip="'Excluir'">
+                    <i class="pi pi-trash text-sm"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <Dialog v-model:visible="showForm" :header="editingTx ? 'Editar Lançamento' : 'Novo Lançamento'" modal :style="{ width: '600px' }">
