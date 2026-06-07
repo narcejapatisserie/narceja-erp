@@ -81,6 +81,7 @@
           <tr class="text-left text-gray-500 dark:text-gray-400">
             <th class="px-4 py-3 font-medium">Descrição</th>
             <th class="px-4 py-3 font-medium hidden md:table-cell">Categoria</th>
+            <th class="px-4 py-3 font-medium hidden md:table-cell">Comprador</th>
             <th class="px-4 py-3 font-medium">Vencimento</th>
             <th class="px-4 py-3 font-medium text-right">Valor</th>
             <th class="px-4 py-3 font-medium text-center">Status</th>
@@ -96,6 +97,11 @@
               </div>
             </td>
             <td class="px-4 py-3 text-gray-500 hidden md:table-cell capitalize">{{ CATEGORY_LABELS[tx.category] }}</td>
+            <td class="px-4 py-3 hidden md:table-cell">
+              <span v-if="tx.notes?.includes('Comprador: Bruno')" class="badge badge-warning">Bruno</span>
+              <span v-else-if="tx.notes?.includes('Comprador: Felipe')" class="badge badge-info">Felipe</span>
+              <span v-else class="text-gray-400">—</span>
+            </td>
             <td class="px-4 py-3 text-gray-500">{{ formatDate(tx.due_date) }}</td>
             <td class="px-4 py-3 text-right font-semibold" :class="tx.type === 'income' ? 'text-green-600' : 'text-red-600'">
               {{ tx.type === 'income' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
