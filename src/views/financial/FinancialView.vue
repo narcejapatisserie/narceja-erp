@@ -33,6 +33,20 @@
       </div>
     </div>
 
+    <!-- Gastos por comprador -->
+    <div v-if="totalBruno > 0 || totalFelipe > 0" class="grid grid-cols-2 gap-4">
+      <div class="card p-4">
+        <p class="text-xs text-gray-500 mb-1">Compras — Bruno</p>
+        <p class="text-xl font-bold text-red-600">{{ formatCurrency(totalBruno) }}</p>
+        <p class="text-xs text-gray-400 mt-1">{{ countBruno }} lançamentos</p>
+      </div>
+      <div class="card p-4">
+        <p class="text-xs text-gray-500 mb-1">Compras — Felipe</p>
+        <p class="text-xl font-bold text-red-600">{{ formatCurrency(totalFelipe) }}</p>
+        <p class="text-xs text-gray-400 mt-1">{{ countFelipe }} lançamentos</p>
+      </div>
+    </div>
+
     <!-- Filtros -->
     <div class="card p-4 flex flex-wrap gap-3">
       <select v-model="filterType" class="input w-36">
@@ -162,6 +176,17 @@ const balance = computed(() => totalIncome.value - totalExpense.value)
 const pendingExpenses = computed(() =>
   store.transactions.filter(t => t.type === 'expense' && t.status === 'pending').reduce((s, t) => s + t.amount, 0)
 )
+
+const brunoPurchases = computed(() =>
+  store.transactions.filter(t => t.type === 'expense' && t.status !== 'cancelled' && t.notes?.includes('Comprador: Bruno'))
+)
+const felipePurchases = computed(() =>
+  store.transactions.filter(t => t.type === 'expense' && t.status !== 'cancelled' && t.notes?.includes('Comprador: Felipe'))
+)
+const totalBruno = computed(() => brunoPurchases.value.reduce((s, t) => s + t.amount, 0))
+const totalFelipe = computed(() => felipePurchases.value.reduce((s, t) => s + t.amount, 0))
+const countBruno = computed(() => brunoPurchases.value.length)
+const countFelipe = computed(() => felipePurchases.value.length)
 
 async function loadTransactions() {
   await store.fetchTransactions({
